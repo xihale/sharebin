@@ -22,35 +22,35 @@ A simple, secure, and blazing fast Pastebin built with **Cloudflare Workers**, *
 ### 2. Setup Database
 Create a D1 database:
 ```bash
-npx wrangler d1 create SHARE_DB
+bunx wrangler d1 create SHARE_DB
 ```
 Update `wrangler.jsonc` with the `database_id` returned from the command.
 
 Initialize the schema:
 ```bash
-npx wrangler d1 execute SHARE_DB --remote --file=./schema.sql
+bunx wrangler d1 execute SHARE_DB --remote --file=./schema.sql
 ```
 
 ### 3. Setup Secrets
 Set your Turnstile keys and Cookie secret:
 ```bash
 # Get these from Cloudflare Dashboard -> Turnstile
-npx wrangler secret put TURNSTILE_SECRET_KEY
+bunx wrangler secret put TURNSTILE_SECRET_KEY
 # Any random long string
-npx wrangler secret put COOKIE_SECRET
+bunx wrangler secret put COOKIE_SECRET
 ```
 
 ### 4. Deploy
 ```bash
-npx wrangler deploy
+bun run deploy
 ```
 
 ## 🛠️ Local Development
 ```bash
 # Install dependencies
-npm install
+bun install
 # Run dev server
-npx wrangler dev
+bun run dev
 ```
 
 ## 📜 License

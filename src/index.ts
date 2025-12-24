@@ -32,11 +32,10 @@ type ShareData = {
 
 const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
-// --- Configuration ---
 const CONFIG = {
-    EXPIRATION_TTL: 3 * 24 * 60 * 60 * 1000, // 3 days in ms
+    EXPIRATION_TTL: 3 * 24 * 60 * 60 * 1000,
     BASE62: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-    MAX_CONTENT_SIZE: 100 * 1024, // 100KB limit
+    MAX_CONTENT_SIZE: 100 * 1024,
     ALLOWED_LANGUAGES: new Set([
       'abap','abnf','actionscript','ada','agda','al','antlr4','apacheconf','apex','apl',
       'applescript','aql','arduino','arff','armasm','arturo','asciidoc','asm6502','asmatmel',
@@ -73,21 +72,16 @@ const CONFIG = {
     ])
 }
 
-// --- Helpers ---
-
-// 0. Turnstile Verification
 async function verifyTurnstile(token: string, secretKey: string | undefined, siteKey: string | undefined): Promise<boolean> {
     if (!token) return false
-    let finalSecret = secretKey
     const TEST_SITE_KEY = '1x00000000000000000000AA'
     const TEST_SECRET_KEY = '1x00000000000000000000AA'
-    if (siteKey === TEST_SITE_KEY || finalSecret === TEST_SECRET_KEY) return true
-    
+    if (siteKey === TEST_SITE_KEY || secretKey === TEST_SECRET_KEY) return true
     try {
         const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `secret=${encodeURIComponent(finalSecret || TEST_SECRET_KEY)}&response=${encodeURIComponent(token)}`
+            body: `secret=${encodeURIComponent(secretKey || TEST_SECRET_KEY)}&response=${encodeURIComponent(token)}`
         })
         const result = await response.json() as { success: boolean }
         return result.success
@@ -96,50 +90,54 @@ async function verifyTurnstile(token: string, secretKey: string | undefined, sit
     }
 }
 
-// 1. Random ID Generator
 function generateId(length: number): string {
-    const result: string[] = []
-    let remaining = length
-    while (remaining > 0) {
-        const bytesNeeded = Math.ceil(remaining * Math.log2(62) / 8)
-        const bytes = new Uint8Array(bytesNeeded)
-        crypto.getRandomValues(bytes)
-        let buffer = BigInt(0)
-        for (const byte of bytes) buffer = (buffer << 8n) | BigInt(byte)
-        const maxValue = 62n ** BigInt(remaining)
-        const discardRange = 256n ** BigInt(bytesNeeded)
-        const remainder = discardRange % maxValue
-        if (buffer < discardRange - remainder) {
-            for (let i = 0; i < remaining; i++) {
-                result.push(CONFIG.BASE62[Number(buffer % 62n)])
-                buffer /= 62n
-            }
-            remaining = 0
-        }
-    }
-    return result.reverse().join('')
+    const bytes = new Uint8Array(length)
+    crypto.getRandomValues(bytes)
+    return Array.from(bytes).map(b => CONFIG.BASE62[b % 62]).join('')
 }
 
 function validateLanguage(lang: string | undefined): string {
-    if (!lang || typeof lang !== 'string') return 'plaintext';
-    const normalized = lang.toLowerCase().trim();
-    return CONFIG.ALLOWED_LANGUAGES.has(normalized) ? normalized : 'plaintext';
+    if (!lang || typeof lang !== 'string') return 'plaintext'
+    const normalized = lang.toLowerCase().trim()
+    return CONFIG.ALLOWED_LANGUAGES.has(normalized) ? normalized : 'plaintext'
 }
 
-// --- Middleware ---
-
-app.use('*', async (c, next) => {
-    const nonce = crypto.randomUUID().replace(/-/g, '')
-    c.set('nonce', nonce)
-    c.header('X-Content-Type-Options', 'nosniff')
-    c.header('X-Frame-Options', 'DENY')
-    c.header('X-XSS-Protection', '1; mode=block')
-    c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
-    c.header('Content-Security-Policy', `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com;`)
-    await next()
+// Global Error Handler to catch 500s
+app.onError((err, c) => {
+  console.error('Global Error:', err)
+  return c.json({ 
+    error: 'Internal Server Error', 
+    message: err.message, 
+    stack: err.stack 
+  }, 500)
 })
 
-// --- Routes ---
+app.use('*', async (c, next) => {
+    // Safer hex nonce generation
+    const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+    c.set('nonce', nonce)
+
+    await next()
+
+    c.header('X-Content-Type-Options', 'nosniff')
+    c.header('X-Frame-Options', 'DENY')
+    c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+    
+    // Explicitly set CSP with 'self' and correct format
+    const csp = [
+      "default-src 'self'",
+      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self'",
+      "connect-src 'self' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+      "frame-src https://challenges.cloudflare.com",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join('; ')
+    c.res.headers.set('Content-Security-Policy', csp)
+})
 
 app.get('/', (c) => {
   const nonce = c.get('nonce')
@@ -147,34 +145,29 @@ app.get('/', (c) => {
 })
 
 app.post('/api/create', async (c) => {
-  let body: CreateRequest
-  try { body = await c.req.json() } catch (e) { return c.json({ error: 'Invalid JSON' }, 400) }
+    let body: CreateRequest
+    try { body = await c.req.json() } catch (e) { return c.json({ error: 'Invalid JSON' }, 400) }
 
-  const { content, type, language, 'cf-turnstile-response': turnstileToken } = body
+    const { content, type, language, 'cf-turnstile-response': turnstileToken } = body
 
-  // 2. Verification (Cookie or Turnstile)
-  const cookieSecret = c.env.COOKIE_SECRET || 'dev-secret-do-not-use-in-prod'
-  const verifiedCookie = await getSignedCookie(c, cookieSecret, VERIFIED_COOKIE_NAME)
-  
-  if (verifiedCookie === 'true') {
-      isVerified = true
-  } else if (turnstileToken) {
-      isVerified = await verifyTurnstile(turnstileToken, c.env.TURNSTILE_SECRET_KEY, c.env.TURNSTILE_SITE_KEY)
-      if (isVerified) {
-          // Set grace period cookie for 1 hour
-          await setSignedCookie(c, VERIFIED_COOKIE_NAME, 'true', cookieSecret, {
-              path: '/', secure: true, httpOnly: true, sameSite: 'Strict', maxAge: 3600,
-          })
-      }
-  }
-  if (!isVerified) return c.json({ error: 'Captcha required', code: 'CAPTCHA_REQUIRED' }, 403)
+    const cookieSecret = c.env.COOKIE_SECRET || 'dev-secret-default'
+    const verifiedCookie = await getSignedCookie(c, cookieSecret, VERIFIED_COOKIE_NAME)
+    
+    let isVerified = verifiedCookie === 'true'
+    if (!isVerified && turnstileToken) {
+        isVerified = await verifyTurnstile(turnstileToken, c.env.TURNSTILE_SECRET_KEY, c.env.TURNSTILE_SITE_KEY)
+        if (isVerified) {
+            await setSignedCookie(c, VERIFIED_COOKIE_NAME, 'true', cookieSecret, {
+                path: '/', secure: true, httpOnly: true, sameSite: 'Strict', maxAge: 3600,
+            })
+        }
+    }
 
-  // 3. Validation
-  if (!content || content.length > CONFIG.MAX_CONTENT_SIZE) return c.json({ error: 'Invalid content size' }, 400)
-  const validatedLanguage = validateLanguage(language)
+    if (!isVerified) return c.json({ error: 'Captcha required', code: 'CAPTCHA_REQUIRED' }, 403)
 
-  try {
-    // 4. Atomic ID Allocation (2-10 chars)
+    if (!content || content.length > CONFIG.MAX_CONTENT_SIZE) return c.json({ error: 'Content size exceeds 100KB' }, 400)
+    const validatedLanguage = validateLanguage(language)
+
     const START_LEN = 2, MAX_LEN = 10, RETRIES_PER_LEN = 5
     let finalId = ''
 
@@ -182,56 +175,38 @@ app.post('/api/create', async (c) => {
         for (let i = 0; i < RETRIES_PER_LEN; i++) {
             const candidate = generateId(len)
             try {
-                // Try atomic insertion
                 await c.env.DB.prepare(
                     'INSERT INTO pastes (id, content, type, language, created_at) VALUES (?, ?, ?, ?, ?)'
-                ).bind(candidate, content, type, validatedLanguage, Date.now()).run()
-                
+                ).bind(candidate, content, type || 'code', validatedLanguage, Date.now()).run()
                 finalId = candidate
                 break
             } catch (e: any) {
-                if (e.message.includes('UNIQUE constraint failed')) continue // Collision, retry
-                throw e // Other DB error
+                if (e.message && e.message.includes('UNIQUE constraint failed')) continue 
+                throw e
             }
         }
         if (finalId) break
     }
 
-    if (!finalId) return c.json({ error: 'Unable to allocate ID' }, 503)
+    if (!finalId) return c.json({ error: 'Allocation failed' }, 503)
     return c.json({ id: finalId })
-
-  } catch (err) {
-    console.error('DB Error:', err)
-    return c.json({ error: 'Database Error' }, 500)
-  }
 })
 
 app.get('/:id', async (c) => {
   const id = c.req.param('id')
   if (id.length > 10) return c.html(renderError('Not Found'), 404)
 
-  try {
-    const data = await c.env.DB.prepare(
-        'SELECT * FROM pastes WHERE id = ?'
-    ).bind(id).first<ShareData>()
+  const data = await c.env.DB.prepare('SELECT * FROM pastes WHERE id = ?').bind(id).first<ShareData>()
+  if (!data) return c.html(renderError('Not Found'), 404)
 
-    if (!data) return c.html(renderError('Not Found'), 404)
-
-    // Check expiration manually (3 days)
-    if (Date.now() - data.created_at > CONFIG.EXPIRATION_TTL) {
-        // Optional: Clean up expired record (fire and forget)
-        c.executionCtx.waitUntil(c.env.DB.prepare('DELETE FROM pastes WHERE id = ?').bind(id).run())
-        return c.html(renderError('Link Expired'), 404)
-    }
-
-    if (data.type === 'url') return c.redirect(data.content)
-    const nonce = c.get('nonce')
-    return c.html(renderPage(data.content, true, data.language, nonce))
-  } catch (e) {
-    return c.html(renderError('Internal Error'), 500)
+  if (Date.now() - data.created_at > CONFIG.EXPIRATION_TTL) {
+      c.executionCtx.waitUntil(c.env.DB.prepare('DELETE FROM pastes WHERE id = ?').bind(id).run())
+      return c.html(renderError('Link Expired'), 404)
   }
-})
 
-export default app
+  if (data.type === 'url') return c.redirect(data.content)
+  const nonce = c.get('nonce')
+  return c.html(renderPage(data.content, true, data.language, nonce))
+})
 
 export default app

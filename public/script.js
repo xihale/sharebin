@@ -203,6 +203,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
+            // Keyboard Shortcuts
+            editor.setOption('extraKeys', {
+                'Ctrl-Enter': () => saveBtn?.click(),
+                'Cmd-Enter': () => saveBtn?.click()
+            });
+
             loadPrismLanguages(dataList);
 
             if (langInput) {

@@ -113,7 +113,7 @@ export function renderPage(content: string | null = null, readOnly: boolean = fa
   <!-- Prism CSS (Auto-switch based on system preference) -->
   <link rel="stylesheet" href="/libs/prism/themes/prism.min.css" media="(prefers-color-scheme: light)">
   <link rel="stylesheet" href="/libs/prism/themes/prism-tomorrow.min.css" media="(prefers-color-scheme: dark)">
-  <link rel="stylesheet" href="/libs/prism/plugins/line-numbers/prism-line-numbers.css">
+  <link rel="stylesheet" href="/libs/prism/plugins/line-numbers/prism-line-numbers.min.css">
   <style nonce="${nonce}">
     /* Dark mode override for line numbers plugin */
     @media (prefers-color-scheme: dark) {
