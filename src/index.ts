@@ -17,13 +17,27 @@ type Variables = {
 const VERIFIED_COOKIE_NAME = 'sb_verified'
 
 async function checkRateLimit(c: any, ip: string): Promise<boolean> {
-    const key = `rl:${ip}`
-    const count = await c.env.LIMITER.get(key)
-    const currentCount = count ? parseInt(count) : 0
+    const minKey = `rl:min:${ip}`
+    const hrKey = `rl:hr:${ip}`
 
-    if (currentCount >= 5) return false // Limit: 5 per minute
+    const [minCountStr, hrCountStr] = await Promise.all([
+        c.env.LIMITER.get(minKey),
+        c.env.LIMITER.get(hrKey)
+    ])
 
-    await c.env.LIMITER.put(key, (currentCount + 1).toString(), { expirationTtl: 60 })
+    const minCount = minCountStr ? parseInt(minCountStr) : 0
+    const hrCount = hrCountStr ? parseInt(hrCountStr) : 0
+
+    // Check limits
+    if (minCount >= 3) return false // Limit: 3 per minute
+    if (hrCount >= 10) return false // Limit: 10 per hour
+
+    // Increment both
+    await Promise.all([
+        c.env.LIMITER.put(minKey, (minCount + 1).toString(), { expirationTtl: 60 }),
+        c.env.LIMITER.put(hrKey, (hrCount + 1).toString(), { expirationTtl: 3600 })
+    ])
+    
     return true
 }
 
