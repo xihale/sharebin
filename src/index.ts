@@ -4,6 +4,7 @@ import { renderPage, renderError } from './renderer'
 
 type Bindings = {
   DB: D1Database
+  LIMITER: KVNamespace
   TURNSTILE_SECRET_KEY?: string
   TURNSTILE_SITE_KEY?: string
   COOKIE_SECRET?: string
@@ -14,6 +15,17 @@ type Variables = {
 }
 
 const VERIFIED_COOKIE_NAME = 'sb_verified'
+
+async function checkRateLimit(c: any, ip: string): Promise<boolean> {
+    const key = `rl:${ip}`
+    const count = await c.env.LIMITER.get(key)
+    const currentCount = count ? parseInt(count) : 0
+
+    if (currentCount >= 5) return false // Limit: 5 per minute
+
+    await c.env.LIMITER.put(key, (currentCount + 1).toString(), { expirationTtl: 60 })
+    return true
+}
 
 type CreateRequest = {
   content: string
@@ -142,6 +154,13 @@ app.get('/', (c) => {
 app.post('/api/create', async (c) => {
     let body: CreateRequest
     try { body = await c.req.json() } catch (e) { return c.json({ error: 'Invalid JSON' }, 400) }
+
+    // --- Rate Limiting ---
+    const clientIP = c.req.header('CF-Connecting-IP') || 'unknown'
+    const isAllowed = await checkRateLimit(c, clientIP)
+    if (!isAllowed) {
+        return c.json({ error: 'Too many requests. Please try again in a minute.' }, 429)
+    }
 
     const { content, type, language, 'cf-turnstile-response': turnstileToken } = body
 

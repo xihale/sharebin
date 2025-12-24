@@ -20,6 +20,12 @@
 			"database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 		}
 	],
+	"kv_namespaces": [
+		{
+			"binding": "LIMITER",
+			"id": "REPLACE_WITH_YOUR_KV_ID"
+		}
+	],
 	"vars": {
 		"TURNSTILE_SITE_KEY": "REPLACE_WITH_YOUR_TURNSTILE_SITE_KEY"
 	},

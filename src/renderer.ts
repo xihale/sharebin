@@ -239,7 +239,7 @@ export function renderPage(content: string | null = null, readOnly: boolean = fa
     window.APP_CONFIG = {
         readOnly: ${readOnly},
         language: "${safeLanguageJson}",
-        turnstileSiteKey: ${turnstileSiteKey ? `"${turnstileSiteKey}"` : '""'}
+        turnstileSiteKey: ${JSON.stringify(turnstileSiteKey || "")}
     };
   </script>
 
