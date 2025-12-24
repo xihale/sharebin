@@ -74,7 +74,7 @@ export function renderError(message: string) {
         <div style="max-width: 400px;">
             <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 1.5rem;"></i>
             <h2 style="margin: 0 0 1rem; font-weight: 600;">Something went wrong</h2>
-            <p style="color: var(--fg); opacity: 0.7; margin-bottom: 2rem; line-height: 1.6;">${message}</p>
+            <p style="color: var(--fg); opacity: 0.7; margin-bottom: 2rem; line-height: 1.6;">${escapeHtml(message)}</p>
             <a href="/" class="btn" style="text-decoration: none;">
                 <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Go Home
             </a>

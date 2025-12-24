@@ -204,7 +204,13 @@ app.get('/:id', async (c) => {
       return c.html(renderError('Link Expired'), 404)
   }
 
-  if (data.type === 'url') return c.redirect(data.content)
+  if (data.type === 'url') {
+      // Security: Only redirect to http/https to prevent javascript: XSS
+      if (/^https?:\/\//i.test(data.content)) {
+          return c.redirect(data.content)
+      }
+      return c.html(renderError('Invalid or insecure URL'), 400)
+  }
   const nonce = c.get('nonce')
   return c.html(renderPage(data.content, true, data.language, nonce))
 })
