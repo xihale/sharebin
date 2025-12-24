@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+package-lock.json
+bun.lock
+
+# Build & System
+dist/
+.wrangler/
+.dev.vars
+dev_server.log
+.DS_Store
+
+# User Configuration
+# We keep wrangler.jsonc.example in git, but ignore the actual production file 
+# if you want to keep your real Database IDs and domains private.
+# wrangler.jsonc
