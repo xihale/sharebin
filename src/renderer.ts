@@ -227,6 +227,8 @@ export function renderPage(content: string | null = null, readOnly: boolean = fa
   <script src="/libs/prism/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
   <!-- CodeMirror Libs -->
+  <!-- Local Libs -->
+  <script src="/libs/tensorflow/tf.min.js"></script>
   <script src="/libs/codemirror/lib/codemirror.min.js"></script>
   <script src="/libs/codemirror/addon/edit/matchbrackets.min.js"></script>
   <script src="/libs/codemirror/addon/edit/closebrackets.min.js"></script>

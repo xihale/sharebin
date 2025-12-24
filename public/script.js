@@ -69,38 +69,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         Prism.plugins.autoloader.languages_path = '/libs/prism/components/';
     }
 
+    // --- ML Language Detection (GuessLang) ---
+    let guessLang = null;
+    const GUESSTOLANG_MAP = {
+        'asm': 'asm6502', 'bat': 'batch', 'c': 'c', 'cbl': 'cobol', 'clj': 'clojure',
+        'cmake': 'cmake', 'coffee': 'coffeescript', 'cpp': 'cpp', 'cs': 'csharp',
+        'css': 'css', 'csv': 'csv', 'dart': 'dart', 'dm': 'dm', 'dockerfile': 'docker',
+        'ex': 'elixir', 'erl': 'erlang', 'f90': 'fortran', 'go': 'go', 'groovy': 'groovy',
+        'hs': 'haskell', 'html': 'markup', 'ini': 'ini', 'java': 'java', 'jl': 'julia',
+        'js': 'javascript', 'json': 'json', 'kt': 'kotlin', 'lisp': 'lisp', 'lua': 'lua',
+        'makefile': 'makefile', 'matlab': 'matlab', 'md': 'markdown', 'mm': 'cpp',
+        'pas': 'pascal', 'php': 'php', 'pl': 'perl', 'ps1': 'powershell', 'py': 'python',
+        'r': 'r', 'rb': 'ruby', 'rs': 'rust', 'scala': 'scala', 'sh': 'bash',
+        'sql': 'sql', 'swift': 'swift', 'tex': 'latex', 'toml': 'toml', 'ts': 'typescript',
+        'v': 'verilog', 'vba': 'vba', 'xml': 'xml', 'yaml': 'yaml'
+    };
+
+    async function initML() {
+        try {
+            // Ensure TF is ready
+            if (typeof tf !== 'undefined') {
+                await tf.ready();
+                await tf.setBackend('cpu');
+                console.log("TensorFlow Ready, Backend:", tf.getBackend());
+            }
+
+            const module = await import('/libs/guesslang/index.mjs');
+            // Force minContentSize to 0 to detect even short snippets
+            guessLang = new module.GuessLang({ minContentSize: 0 });
+            console.log("ML Detection Initialized (GuessLang)");
+        } catch (e) {
+            console.error("ML Init Failed:", e);
+        }
+    }
+    initML();
+
+    async function detectLanguageML(fullCode) {
+        if (!fullCode || !guessLang) return null;
+        
+        try {
+            const results = await guessLang.runModel(fullCode);
+            console.log("ML Results:", results); // Debugging
+            if (results && results.length > 0 && results[0].confidence > 0.05) {
+                const id = results[0].languageId;
+                const mapped = GUESSTOLANG_MAP[id] || id;
+                console.log(`ML Detected: ${id} -> ${mapped} (${Math.round(results[0].confidence * 100)}%)`);
+                return mapped;
+            }
+        } catch (e) { console.error("ML Detection Error:", e); }
+        return null;
+    }
+
     // --- State & Data ---
     let validLanguages = new Set(['plaintext']);
     let languageMap = {};
     let isManualSelection = false;
     let allPrismLanguages = new Set();
-
-    // Helper: Lightweight Heuristic Detection
-    // OPTIMIZATION: Only scans the first 2000 characters to prevent hanging on massive pastes
-    function detectLanguage(fullCode) {
-        if (!fullCode) return null;
-        const code = fullCode.trim().slice(0, 2000); 
-
-        if (code.startsWith('#!/bin/bash') || code.startsWith('#!/bin/sh')) return 'bash';
-        if (code.startsWith('#!/usr/bin/env python')) return 'python';
-        if (code.startsWith('#!/usr/bin/env node')) return 'javascript';
-        if (/^<!DOCTYPE html>/i.test(code) || (/<html/i.test(code) && /<\/html>/i.test(code))) return 'html';
-        if (/^\s*<(\?xml|[\w:.-]+)[^>]*>/.test(code)) return 'xml';
-        if (/^\s*[a-z0-9-]+\s*\{[\s\S]*:[^;]+;[\s\S]*\}/i.test(code)) return 'css';
-        if ((code.startsWith('{') && code.endsWith('}')) || (code.startsWith('[') && code.endsWith(']'))) {
-            try { JSON.parse(code); return 'json'; } catch(e) {}
-        }
-        if (/\bdef\s+\w+\(/.test(code) || /\bimport\s+[\w.]+\s*$/.test(code) || /\bfrom\s+[\w.]+\s+import/.test(code)) return 'python';
-        if (/\bpackage\s+main\b/.test(code) && /\bfunc\s+main\b/.test(code)) return 'go';
-        if (/\bfn\s+main\(\)/.test(code) || /\bpub\s+fn\b/.test(code) || /println!/.test(code)) return 'rust';
-        if (/\bpublic\s+class\s+\w+/.test(code) && /\bpublic\s+static\s+void\s+main/.test(code)) return 'java';
-        if (/#include\s+<[\w.]+>/.test(code) && /\bint\s+main\s*\(/.test(code)) return 'cpp';
-        if (/\binterface\s+\w+\s*\{/.test(code) || /\btype\s+\w+\s*=/.test(code)) return 'typescript';
-        if (/\bconst\s+\w+\s*=/.test(code) || /\bconsole\.log\(/.test(code) || /\bfunction\s+\w+\(/.test(code)) return 'javascript';
-        if (/\bSELECT\b.*\bFROM\b/i.test(code)) return 'sql';
-        if (/^#\s+/.test(code) && /^\s*[-*]\s+/.test(code)) return 'markdown';
-        return null;
-    }
 
     function setEditorMode(editor, lang) {
         if (!lang || lang === 'plaintext' || lang === 'null') {
@@ -244,7 +268,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (isUrl) {
                     typeIndicator.textContent = 'Link Redirect';
                     typeIndicator.classList.add('visible');
-                    // Stop language detection if URL
                     return;
                 }
                 
@@ -253,14 +276,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (!isManualSelection && langInput) {
                     clearTimeout(window.detectTimer);
-                    window.detectTimer = setTimeout(() => {
-                        // Pass truncated content for detection performance
-                        const detected = detectLanguage(content);
+                    window.detectTimer = setTimeout(async () => {
+                        console.log("Detecting language for content length:", content.length);
+                        const detected = await detectLanguageML(content);
                         if (detected && detected !== langInput.value) {
                             langInput.value = detected;
                             setEditorMode(editor, detected);
                         }
-                    }, 600);
+                    }, 500);
                 }
             });
 

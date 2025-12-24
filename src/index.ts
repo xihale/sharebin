@@ -128,10 +128,10 @@ app.use('*', async (c, next) => {
     // Explicitly set CSP with 'self' and correct format
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
+      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
-      "connect-src 'self' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+      "connect-src 'self' blob: data: https://static.cloudflareinsights.com https://challenges.cloudflare.com",
       "frame-src https://challenges.cloudflare.com",
       "base-uri 'self'",
       "form-action 'self'"

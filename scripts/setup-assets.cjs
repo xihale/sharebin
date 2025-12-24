@@ -57,6 +57,10 @@ const assets = [
     { type: 'copy', src: 'node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css', dest: 'prism/plugins/line-numbers/prism-line-numbers.min.css' },
     { type: 'copy', src: 'node_modules/prismjs/themes/prism.min.css', dest: 'prism/themes/prism.min.css' },
     { type: 'copy', src: 'node_modules/prismjs/themes/prism-tomorrow.min.css', dest: 'prism/themes/prism-tomorrow.min.css' },
+
+    // GuessLang-JS & TensorFlow.js
+    { type: 'copy', src: 'node_modules/@ray-d-song/guesslang-js/dist/lib/guesslang-js.mjs', dest: 'guesslang/index.mjs' },
+    { type: 'copy', src: 'node_modules/@tensorflow/tfjs/dist/tf.min.js', dest: 'tensorflow/tf.min.js' },
 ];
 
 assets.forEach(asset => {
