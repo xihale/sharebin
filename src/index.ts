@@ -17,6 +17,10 @@ type Variables = {
 const VERIFIED_COOKIE_NAME = 'sb_verified'
 
 async function checkRateLimit(c: any, ip: string): Promise<boolean> {
+    if (!c.env.LIMITER) {
+      console.warn('Rate Limiter binding (LIMITER) not found. Skipping rate check.')
+      return true
+    }
     const minKey = `rl:min:${ip}`
     const hrKey = `rl:hr:${ip}`
 

@@ -10,7 +10,7 @@
 ### 1. Create KV Namespace
 
 ```bash
-wrangler kv:namespace create "SHARE_BIN"
+wrangler kv:namespace create "LIMITER"
 ```
 
 Copy the `id` from the output and update `wrangler.jsonc`:
@@ -18,10 +18,36 @@ Copy the `id` from the output and update `wrangler.jsonc`:
 ```json
 "kv_namespaces": [
   {
-    "binding": "SHARE_BIN",
+    "binding": "LIMITER",
     "id": "YOUR_KV_NAMESPACE_ID"
   }
 ]
+```
+
+### 1.5 Setup D1 Database
+
+```bash
+wrangler d1 create SHARE_DB
+```
+
+Update `wrangler.jsonc`:
+
+```json
+"d1_databases": [
+  {
+    "binding": "DB",
+    "database_name": "SHARE_DB",
+    "database_id": "YOUR_DATABASE_ID"
+  }
+]
+```
+
+Initialize the database schema:
+
+```bash
+wrangler d1 execute SHARE_DB --local --file=schema.sql
+# For production deploy:
+# wrangler d1 execute SHARE_DB --remote --file=schema.sql
 ```
 
 ### 2. Setup Cloudflare Turnstile
