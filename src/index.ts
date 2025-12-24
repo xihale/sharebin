@@ -215,4 +215,21 @@ app.get('/:id', async (c) => {
   return c.html(renderPage(data.content, true, data.language, nonce))
 })
 
-export default app
+// --- Cron Trigger for Cleanup ---
+// This handles the background cleanup process
+const worker = {
+    fetch: app.fetch,
+    async scheduled(event: any, env: Bindings, ctx: ExecutionContext) {
+        console.log('Running background cleanup...');
+        const expirationTime = Date.now() - CONFIG.EXPIRATION_TTL;
+        ctx.waitUntil(
+            env.DB.prepare('DELETE FROM pastes WHERE created_at < ?')
+                .bind(expirationTime)
+                .run()
+                .then(res => console.log(`Cleanup complete. Meta: ${JSON.stringify(res.meta)}`))
+                .catch(err => console.error('Cleanup failed:', err))
+        );
+    }
+};
+
+export default worker;

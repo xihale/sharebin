@@ -22,5 +22,10 @@
 	],
 	"vars": {
 		"TURNSTILE_SITE_KEY": "REPLACE_WITH_YOUR_TURNSTILE_SITE_KEY"
+	},
+	"triggers": {
+		"crons": [
+			"0 * * * *"
+		]
 	}
 }
