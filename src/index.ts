@@ -72,16 +72,13 @@ const CONFIG = {
     ])
 }
 
-async function verifyTurnstile(token: string, secretKey: string | undefined, siteKey: string | undefined): Promise<boolean> {
-    if (!token) return false
-    const TEST_SITE_KEY = '1x00000000000000000000AA'
-    const TEST_SECRET_KEY = '1x00000000000000000000AA'
-    if (siteKey === TEST_SITE_KEY || secretKey === TEST_SECRET_KEY) return true
+async function verifyTurnstile(token: string, secretKey: string | undefined): Promise<boolean> {
+    if (!token || !secretKey) return false
     try {
         const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `secret=${encodeURIComponent(secretKey || TEST_SECRET_KEY)}&response=${encodeURIComponent(token)}`
+            body: `secret=${encodeURIComponent(secretKey)}&response=${encodeURIComponent(token)}`
         })
         const result = await response.json() as { success: boolean }
         return result.success
@@ -106,9 +103,7 @@ function validateLanguage(lang: string | undefined): string {
 app.onError((err, c) => {
   console.error('Global Error:', err)
   return c.json({ 
-    error: 'Internal Server Error', 
-    message: err.message, 
-    stack: err.stack 
+    error: 'Internal Server Error'
   }, 500)
 })
 
@@ -141,7 +136,7 @@ app.use('*', async (c, next) => {
 
 app.get('/', (c) => {
   const nonce = c.get('nonce')
-  return c.html(renderPage(null, false, 'plaintext', nonce))
+  return c.html(renderPage(null, false, 'plaintext', nonce, c.env.TURNSTILE_SITE_KEY))
 })
 
 app.post('/api/create', async (c) => {
@@ -150,12 +145,15 @@ app.post('/api/create', async (c) => {
 
     const { content, type, language, 'cf-turnstile-response': turnstileToken } = body
 
-    const cookieSecret = c.env.COOKIE_SECRET || 'dev-secret-default'
+    const cookieSecret = c.env.COOKIE_SECRET
+    if (!cookieSecret) {
+        throw new Error('Security Error: COOKIE_SECRET environment variable is missing.')
+    }
     const verifiedCookie = await getSignedCookie(c, cookieSecret, VERIFIED_COOKIE_NAME)
     
     let isVerified = verifiedCookie === 'true'
     if (!isVerified && turnstileToken) {
-        isVerified = await verifyTurnstile(turnstileToken, c.env.TURNSTILE_SECRET_KEY, c.env.TURNSTILE_SITE_KEY)
+        isVerified = await verifyTurnstile(turnstileToken, c.env.TURNSTILE_SECRET_KEY)
         if (isVerified) {
             await setSignedCookie(c, VERIFIED_COOKIE_NAME, 'true', cookieSecret, {
                 path: '/', secure: true, httpOnly: true, sameSite: 'Strict', maxAge: 3600,
@@ -212,7 +210,7 @@ app.get('/:id', async (c) => {
       return c.html(renderError('Invalid or insecure URL'), 400)
   }
   const nonce = c.get('nonce')
-  return c.html(renderPage(data.content, true, data.language, nonce))
+  return c.html(renderPage(data.content, true, data.language, nonce, c.env.TURNSTILE_SITE_KEY))
 })
 
 // --- Cron Trigger for Cleanup ---

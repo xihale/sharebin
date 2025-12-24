@@ -84,7 +84,7 @@ export function renderError(message: string) {
 </html>`
 }
 
-export function renderPage(content: string | null = null, readOnly: boolean = false, language: string = 'plaintext', nonce: string = '') {
+export function renderPage(content: string | null = null, readOnly: boolean = false, language: string = 'plaintext', nonce: string = '', turnstileSiteKey: string = '') {
     const safeLanguage = sanitizeLanguage(language);
     const safeLanguageJson = safeLanguage.replace(/"/g, '\\"');
 
@@ -238,7 +238,8 @@ export function renderPage(content: string | null = null, readOnly: boolean = fa
   <script nonce="${nonce}">
     window.APP_CONFIG = {
         readOnly: ${readOnly},
-        language: "${safeLanguageJson}"
+        language: "${safeLanguageJson}",
+        turnstileSiteKey: "${turnstileSiteKey}"
     };
   </script>
 

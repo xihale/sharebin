@@ -13,6 +13,15 @@ A simple, secure, and blazing fast Pastebin built with **Cloudflare Workers**, *
 - **Self-hosted Assets**: No external CDN dependencies (FontAwesome, CodeMirror, PrismJS are all local).
 - **Modern UI**: Dark mode support and polished interface.
 
+## Configuration Reference
+
+| Variable | Type | Description | Source |
+| :--- | :--- | :--- | :--- |
+| `DB` | Binding | D1 Database connection | `wrangler.jsonc` |
+| `TURNSTILE_SITE_KEY` | Var | Public Turnstile key | `wrangler.jsonc` |
+| `TURNSTILE_SECRET_KEY`| Secret | Private Turnstile key | `wrangler secret put` |
+| `COOKIE_SECRET` | Secret | Key for signed cookies | `wrangler secret put` |
+
 ## 🚀 Deployment
 
 ### 1. Prerequisites
@@ -31,19 +40,23 @@ Initialize the schema:
 bunx wrangler d1 execute SHARE_DB --remote --file=./schema.sql
 ```
 
-### 3. Setup Secrets
-Set your Turnstile keys and Cookie secret:
-```bash
-# Get these from Cloudflare Dashboard -> Turnstile
-bunx wrangler secret put TURNSTILE_SECRET_KEY
-# Any random long string
-bunx wrangler secret put COOKIE_SECRET
-```
+3. **Configure Secrets**:
+   The following sensitive variables must be set manually via Cloudflare Secrets:
+   ```bash
+   # Secret for signing cookies (use a long random string)
+   bunx wrangler secret put COOKIE_SECRET
+   
+   # Turnstile Secret Key from Cloudflare Dashboard
+   bunx wrangler secret put TURNSTILE_SECRET_KEY
+   ```
 
-### 4. Deploy
-```bash
-bun run deploy
-```
+4. **Configuration**:
+   Copy `wrangler.jsonc.example` to `wrangler.jsonc` and update `database_id` and `TURNSTILE_SITE_KEY`.
+
+5. **Deploy**:
+   ```bash
+   bun run deploy
+   ```
 
 ## 🛠️ Local Development
 ```bash

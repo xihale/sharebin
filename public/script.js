@@ -299,10 +299,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 if (window.turnstile) {
                     if (turnstileWidgetId !== null) return;
-                    turnstileWidgetId = window.turnstile.render('#turnstile-container', {
-                        sitekey: '0x4AAAAAACI6fa1HcBuhPd1S',
-                        theme: 'dark',
-                        callback: function(token) {
+            turnstile.render('#turnstile-container', {
+                sitekey: window.APP_CONFIG.turnstileSiteKey || '',
+                callback: async function(token) {
                             if (isWaitingForCaptcha && captchaModal && captchaModal.classList.contains('visible')) {
                                 console.log('Captcha success, submitting...');
                                 isWaitingForCaptcha = false; // Reset flag
