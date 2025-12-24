@@ -203,11 +203,17 @@ app.get('/:id', async (c) => {
   }
 
   if (data.type === 'url') {
-      // Security: Only redirect to http/https to prevent javascript: XSS
-      if (/^https?:\/\//i.test(data.content)) {
-          return c.redirect(data.content)
+      // Security: Only redirect to http/https to prevent javascript: or ws: XSS/SSRF risks
+      const ALLOWED_PROTOCOLS = ['http:', 'https:'];
+      try {
+          const url = new URL(data.content);
+          if (ALLOWED_PROTOCOLS.includes(url.protocol)) {
+              return c.redirect(data.content);
+          }
+      } catch (e) {
+          // If URL is invalid, fall through to error
       }
-      return c.html(renderError('Invalid or insecure URL'), 400)
+      return c.html(renderError('Invalid or insecure URL'), 400);
   }
   const nonce = c.get('nonce')
   return c.html(renderPage(data.content, true, data.language, nonce, c.env.TURNSTILE_SITE_KEY))

@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let languageMap = {};
     let isManualSelection = false;
     let allPrismLanguages = new Set();
+    let detectTimer = null; // Module-scoped variable
 
     function setEditorMode(editor, lang) {
         if (!lang || lang === 'plaintext' || lang === 'null') {
@@ -264,7 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return; 
                 }
                 
-                const isUrl = /^(http|https|ws|wss):\/\/[^ "]+$/.test(content);
+                const isUrl = /^(http|https):\/\/[^ "]+$/.test(content);
                 if (isUrl) {
                     typeIndicator.textContent = 'Link Redirect';
                     typeIndicator.classList.add('visible');
@@ -275,8 +276,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 typeIndicator.classList.add('visible');
 
                 if (!isManualSelection && langInput) {
-                    clearTimeout(window.detectTimer);
-                    window.detectTimer = setTimeout(async () => {
+                    clearTimeout(detectTimer);
+                    detectTimer = setTimeout(async () => {
                         console.log("Detecting language for content length:", content.length);
                         const detected = await detectLanguageML(content);
                         if (detected && detected !== langInput.value) {
@@ -353,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             content, 
-                            type: /^(http|https|ws|wss):\/\/[^ "]+$/.test(content.trim()) ? 'url' : 'code', 
+                            type: /^(http|https):\/\/[^ "]+$/.test(content.trim()) ? 'url' : 'code', 
                             language: validateLanguage(langInput?.value) 
                         })
                     });
@@ -411,7 +412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             async function submitSnippet(turnstileToken) {
                 const content = editor.getValue();
-                const isUrl = /^(http|https|ws|wss):\/\/[^ "]+$/.test(content.trim());
+                const isUrl = /^(http|https):\/\/[^ "]+$/.test(content.trim());
                 const type = isUrl ? 'url' : 'code';
                 let language = validateLanguage(langInput?.value);
 
