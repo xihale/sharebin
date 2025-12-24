@@ -187,6 +187,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return allPrismLanguages.has(normalized) ? normalized : 'plaintext';
     }
 
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.innerHTML = isError ? `<i class="fas fa-exclamation-circle"></i> ${message}` : message;
+        toast.style.background = isError ? '#ff4757' : 'rgba(0,0,0,0.8)';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
     if (!isReadOnly) {
         const editorContainer = document.getElementById('editor-container');
         const typeIndicator = document.getElementById('type-indicator');
@@ -340,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Client-side Size Limit Check
                 const MAX_SIZE = 100 * 1024;
                 if (content.length > MAX_SIZE) {
-                    alert(`Content is too large! Limit is 100KB.`);
+                    showToast('Content too large (Max 100KB)', true);
                     return;
                 }
 
@@ -365,7 +374,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             // Need verification
                             saveBtn.innerHTML = 'Verifying... <i class="fas fa-shield-alt fa-spin"></i>';
                             if (!window.turnstile || turnstileWidgetId === null) {
-                                alert('Security check is still loading. Please try again in a moment.');
+                                showToast('Security check loading, please wait...', true);
                                 saveBtn.disabled = false;
                                 saveBtn.innerHTML = 'Share <i class="fas fa-paper-plane" style="margin-left:8px"></i>';
                                 return;
@@ -387,7 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     handleSuccess(data.id);
 
                 } catch (e) {
-                    alert('Error saving: ' + e.message);
+                    showToast('Error: ' + e.message, true);
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = 'Share <i class="fas fa-paper-plane" style="margin-left:8px"></i>';
                 }
@@ -435,7 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         handleSuccess(data.id);
                     }
                 } catch (e) {
-                    alert('Error saving: ' + e.message);
+                    showToast('Error: ' + e.message, true);
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = 'Share <i class="fas fa-paper-plane" style="margin-left:8px"></i>';
                     if (turnstileWidgetId !== null && window.turnstile) {

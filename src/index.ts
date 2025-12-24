@@ -177,6 +177,10 @@ app.post('/api/create', async (c) => {
     }
 
     const { content, type, language, 'cf-turnstile-response': turnstileToken } = body
+    
+    // Strict type validation
+    const validTypes = ['code', 'url']
+    const finalType = validTypes.includes(type) ? type : 'code'
 
     const cookieSecret = c.env.COOKIE_SECRET
     if (!cookieSecret) {
