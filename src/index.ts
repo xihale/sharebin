@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { getSignedCookie, setSignedCookie } from 'hono/cookie'
 import { renderPage, renderError } from './renderer'
+import { ALLOWED_LANGUAGES } from './languages'
 
 type Bindings = {
   DB: D1Database
@@ -15,6 +16,18 @@ type Variables = {
 }
 
 const VERIFIED_COOKIE_NAME = 'sb_verified'
+
+const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA';
+const TURNSTILE_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
+
+function getTurnstileConfig(c: any) {
+  const url = new URL(c.req.url);
+  const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  return {
+    siteKey: isLocal ? TURNSTILE_TEST_SITE_KEY : c.env.TURNSTILE_SITE_KEY,
+    secretKey: isLocal ? TURNSTILE_TEST_SECRET_KEY : c.env.TURNSTILE_SECRET_KEY
+  };
+}
 
 async function checkRateLimit(c: any, ip: string): Promise<boolean> {
     if (!c.env.LIMITER) {
@@ -63,43 +76,9 @@ type ShareData = {
 const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
 const CONFIG = {
-    EXPIRATION_TTL: 3 * 24 * 60 * 60 * 1000,
+    EXPIRATION_TTL: 7 * 24 * 60 * 60 * 1000,
     BASE62: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-    MAX_CONTENT_SIZE: 100 * 1024,
-    ALLOWED_LANGUAGES: new Set([
-      'abap','abnf','actionscript','ada','agda','al','antlr4','apacheconf','apex','apl',
-      'applescript','aql','arduino','arff','armasm','arturo','asciidoc','asm6502','asmatmel',
-      'aspnet','autohotkey','autoit','avisynth','avro-idl','awk','bash','basic','batch',
-      'bbcode','bbj','bicep','birb','bison','bnf','bqn','brainfuck','brightscript','bro','bsl',
-      'c','cfscript','chaiscript','cil','cilkc','cilkcpp','clike','clojure','cmake','cobol',
-      'coffeescript','concurnas','cooklang','coq','cpp','crystal','csharp','cshtml','csp',
-      'css','css-extras','csv','cue','cypher','d','dart','dataweave','dax','dhall','diff',
-      'django','dns-zone-file','docker','dot','ebnf','editorconfig','eiffel','ejs','elixir',
-      'elm','erb','erlang','etlua','excel-formula','factor','false','firestore-security-rules',
-      'flow','fortran','fsharp','ftl','gap','gcode','gdscript','gedcom','gettext','gherkin',
-      'git','glsl','gml','gn','go','go-module','gradle','graphql','groovy','haml','handlebars',
-      'haskell','haxe','hcl','hlsl','hoon','hpkp','hsts','http','ichigojam','icon',
-      'icu-message-format','idris','iecst','ignore','inform7','ini','io','j','java','javadoc',
-      'javadoclike','javascript','javastacktrace','jexl','jolie','jq','js-extras','js-templates',
-      'jsdoc','json','json5','jsonp','jsstacktrace','jsx','julia','keepalived','keyman','kotlin',
-      'kumir','kusto','latex','latte','less','lilypond','linker-script','liquid','lisp',
-      'livescript','llvm','log','lolcode','lua','magma','makefile','markdown','markup',
-      'markup-templating','mata','matlab','maxscript','mel','mermaid','meta','metafont','mizar',
-      'mongodb','monkey','moonscript','n1ql','n4js','nand2tetris-hdl','naniscript','nasm',
-      'neon','nevod','nginx','nim','nix','nsis','objectivec','ocaml','odin','opencl','openqasm',
-      'oz','parigp','parser','pascal','pascaligo','pcaxis','peoplecode','perl','php',
-      'php-extras','phpdoc','plant-uml','plsql','powerquery','powershell','processing','prolog',
-      'promql','properties','protobuf','psl','pug','puppet','pure','purebasic','purescript',
-      'python','q','qml','qore','qsharp','r','racket','reason','regex','rego','renpy',
-      'rescript','rest','rip','roboconf','robotframework','ruby','rust','sas','sass','scala',
-      'scheme','scss','shell-session','smali','smalltalk','smarty','sml','solidity',
-      'solution-file','soy','sparql','splunk-spl','sqf','sql','squirrel','stan','stata',
-      'stylus','supercollider','swift','systemd','t4-cs','t4-templating','t4-vb','tap','tcl',
-      'textile','toml','tremor','tsx','tt2','turtle','twig','typescript','typoscript',
-      'unrealscript','uorazor','uri','v','vala','vbnet','velocity','verilog','vhdl','vim',
-      'visual-basic','warpscript','wasm','web-idl','wgsl','wiki','wolfram','wren','xeora',
-      'xml-doc','xojo','xquery','yaml','yang','zig','plaintext'
-    ])
+    MAX_CONTENT_SIZE: 100 * 1024
 }
 
 async function verifyTurnstile(token: string, secretKey: string | undefined): Promise<boolean> {
@@ -126,7 +105,7 @@ function generateId(length: number): string {
 function validateLanguage(lang: string | undefined): string {
     if (!lang || typeof lang !== 'string') return 'plaintext'
     const normalized = lang.toLowerCase().trim()
-    return CONFIG.ALLOWED_LANGUAGES.has(normalized) ? normalized : 'plaintext'
+    return ALLOWED_LANGUAGES.has(normalized) ? normalized : 'plaintext'
 }
 
 // Global Error Handler to catch 500s
@@ -148,25 +127,27 @@ app.use('*', async (c, next) => {
 
     c.header('X-Content-Type-Options', 'nosniff')
     c.header('X-Frame-Options', 'DENY')
-    c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+    c.header('Referrer-Policy', 'no-referrer-when-downgrade')
     
     // Explicitly set CSP with 'self' and correct format
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
-      "style-src 'self' 'unsafe-inline'",
-      "font-src 'self'",
-      "connect-src 'self' blob: data: https://static.cloudflareinsights.com https://challenges.cloudflare.com",
-      "frame-src https://challenges.cloudflare.com",
+      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://cdnjs.loli.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-RlhVC6WGhVrcsY0hAmbU/YhaSUz2iA2q1f16/7A6jLU='`,
+      "style-src 'self' 'unsafe-inline' https://cdnjs.loli.net https://cdnjs.cloudflare.com https://fonts.loli.net",
+      "img-src 'self' data: https://challenges.cloudflare.com",
+      "font-src 'self' https://cdnjs.loli.net https://cdnjs.cloudflare.com https://gstatic.loli.net",
+      "connect-src 'self' blob: data: https://cdnjs.loli.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+      "frame-src 'self' https://challenges.cloudflare.com",
       "base-uri 'self'",
       "form-action 'self'"
     ].join('; ')
-    c.res.headers.set('Content-Security-Policy', csp)
+    c.header('Content-Security-Policy', csp)
 })
 
 app.get('/', (c) => {
   const nonce = c.get('nonce')
-  return c.html(renderPage(null, false, 'plaintext', nonce, c.env.TURNSTILE_SITE_KEY))
+  const { siteKey } = getTurnstileConfig(c);
+  return c.html(renderPage(null, false, 'plaintext', nonce, siteKey))
 })
 
 app.post('/api/create', async (c) => {
@@ -192,9 +173,10 @@ app.post('/api/create', async (c) => {
     }
     const verifiedCookie = await getSignedCookie(c, cookieSecret, VERIFIED_COOKIE_NAME)
     
+    const { secretKey } = getTurnstileConfig(c);
     let isVerified = verifiedCookie === 'true'
     if (!isVerified && turnstileToken) {
-        isVerified = await verifyTurnstile(turnstileToken, c.env.TURNSTILE_SECRET_KEY)
+        isVerified = await verifyTurnstile(turnstileToken, secretKey)
         if (isVerified) {
             await setSignedCookie(c, VERIFIED_COOKIE_NAME, 'true', cookieSecret, {
                 path: '/', secure: true, httpOnly: true, sameSite: 'Strict', maxAge: 3600,
@@ -232,15 +214,16 @@ app.post('/api/create', async (c) => {
 })
 
 app.get('/:id', async (c) => {
+  const nonce = c.get('nonce')
   const id = c.req.param('id')
-  if (id.length > 10) return c.html(renderError('Not Found'), 404)
+  if (id.length > 10) return c.html(renderError('Not Found', nonce), 404)
 
   const data = await c.env.DB.prepare('SELECT * FROM pastes WHERE id = ?').bind(id).first<ShareData>()
-  if (!data) return c.html(renderError('Not Found'), 404)
+  if (!data) return c.html(renderError('Not Found', nonce), 404)
 
   if (Date.now() - data.created_at > CONFIG.EXPIRATION_TTL) {
       c.executionCtx.waitUntil(c.env.DB.prepare('DELETE FROM pastes WHERE id = ?').bind(id).run())
-      return c.html(renderError('Link Expired'), 404)
+      return c.html(renderError('Link Expired', nonce), 404)
   }
 
   if (data.type === 'url') {
@@ -254,11 +237,18 @@ app.get('/:id', async (c) => {
       } catch (e) {
           // If URL is invalid, fall through to error
       }
-      return c.html(renderError('Invalid or insecure URL'), 400);
+      return c.html(renderError('Invalid or insecure URL', nonce), 400);
   }
-  const nonce = c.get('nonce')
-  return c.html(renderPage(data.content, true, data.language, nonce, c.env.TURNSTILE_SITE_KEY))
+  
+  const diff = data.created_at + CONFIG.EXPIRATION_TTL - Date.now();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const expirationText = `${days} d ${hours} h`;
+
+  const { siteKey } = getTurnstileConfig(c);
+  return c.html(renderPage(data.content, true, data.language, nonce, siteKey, expirationText))
 })
+
 
 // --- Cron Trigger for Cleanup ---
 // This handles the background cleanup process

@@ -123,10 +123,17 @@ main { flex: 1; display: flex; flex-direction: column; position: relative; overf
   flex: 1;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* CM handles scroll */
   position: relative;
   background: var(--bg);
   cursor: text; /* Show text cursor in the whole editor area */
+}
+
+#editor-wrapper {
+  overflow: hidden; /* CM handles scroll */
+}
+
+#viewer-container {
+  overflow: auto; /* Allow native scroll for viewer */
 }
 
 #editor-container {
@@ -377,4 +384,115 @@ pre[class*="language-"].line-numbers {
 }
 .result-box .btn[style*="background:transparent"]:hover {
     background: var(--input-hover) !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Header Adjustments */
+  header {
+    padding: 0 1rem;
+    height: 56px;
+  }
+  
+  .brand {
+    font-size: 1rem;
+  }
+
+  .meta {
+    gap: 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  /* Hide static "Auto-detect" label and divider on small screens */
+  .meta span:last-child, .meta .divider {
+      display: none; 
+  }
+
+  /* Adjust Language Input */
+  .lang-input {
+    width: 110px;
+    padding-right: 1.5rem; 
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+  
+  .lang-input:focus {
+      width: 140px;
+  }
+  
+  /* Controls - Move to bottom right, fixed/absolute but better positioned */
+  .controls {
+    bottom: 1rem;
+    right: 1rem;
+    gap: 0.8rem;
+  }
+  
+  .status-indicator {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+  }
+  
+  .btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  /* Result Overlay */
+  .result-box {
+    padding: 1.5rem;
+    width: 90%;
+    min-width: auto;
+    max-width: 100%;
+  }
+  
+  .link-display {
+    font-size: 0.8rem;
+    padding: 0.8rem;
+  }
+  
+  .action-row {
+      flex-direction: column;
+      gap: 0.5rem;
+  }
+  
+  .action-row .btn {
+      width: 100%;
+  }
+
+  /* Viewer Adjustments */
+  pre[class*="language-"] {
+      padding: 0.5rem !important;
+  }
+  
+  /* Compact Line Numbers */
+  pre[class*="language-"].line-numbers {
+      padding-left: 3rem !important;
+  }
+  .line-numbers .line-numbers-rows {
+      width: 2rem !important;
+      left: -3rem !important;
+  }
+  
+  /* CodeMirror Adjustments */
+  .CodeMirror-gutters {
+      width: 2.5rem;
+  }
+  .CodeMirror-linenumber {
+      padding-left: 0.2rem !important;
+  }
+  
+  /* Toast Centering */
+  .toast {
+      top: auto;
+      bottom: 2rem;
+      right: auto;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      width: auto;
+      white-space: nowrap;
+      background: var(--fg);
+      color: var(--bg);
+  }
+  .toast.show {
+      transform: translateX(-50%) translateY(0);
+  }
 }

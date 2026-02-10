@@ -8,11 +8,11 @@ dist/
 .wrangler/
 .dev.vars
 dev_server.log
+wrangler*.log
 .DS_Store
 
 # Automated Assets (Managed by npm run setup-assets)
 public/libs/
-public/fonts/
 
 # User Configuration
 # wrangler.jsonc

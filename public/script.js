@@ -64,9 +64,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- Configuration for Dynamic Loading via Local Libs ---
+    // --- Configuration for Dynamic Loading via CDN ---
     if (typeof Prism !== 'undefined' && Prism.plugins.autoloader) {
-        Prism.plugins.autoloader.languages_path = '/libs/prism/components/';
+        Prism.plugins.autoloader.languages_path = 'https://cdnjs.webcache.cn/ajax/libs/prism/1.30.0/components/';
     }
 
     // --- ML Language Detection (GuessLang) ---
@@ -110,7 +110,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const results = await guessLang.runModel(fullCode);
             console.log("ML Results:", results); // Debugging
-            if (results && results.length > 0 && results[0].confidence > 0.05) {
+            const threshold = (results[0].languageId === 'ini') ? 0.3 : 0.15;
+            if (results && results.length > 0 && results[0].confidence > threshold) {
                 const id = results[0].languageId;
                 const mapped = GUESSTOLANG_MAP[id] || id;
                 console.log(`ML Detected: ${id} -> ${mapped} (${Math.round(results[0].confidence * 100)}%)`);
@@ -487,5 +488,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     const createNewBtn = document.getElementById('create-new-btn');
     if (createNewBtn) {
         createNewBtn.addEventListener('click', () => location.reload());
+    }
+
+    // --- Markdown Preview Logic ---
+    const previewBtn = document.getElementById('preview-btn');
+    if (previewBtn) {
+        const preBlock = document.querySelector('#viewer-container pre');
+        const previewBlock = document.getElementById('markdown-preview');
+        // Determine initial state based on visibility set by renderer
+        let isPreview = previewBlock && previewBlock.style.display !== 'none';
+
+        const renderMarkdown = () => {
+             if (previewBlock && !previewBlock.innerHTML) {
+                const codeEl = document.querySelector('code');
+                if (codeEl) {
+                    const rawContent = codeEl.innerText;
+                    
+                    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                        try {
+                            previewBlock.innerHTML = DOMPurify.sanitize(marked.parse(rawContent));
+                        } catch(e) {
+                            previewBlock.innerHTML = '<p style="color:red">Error rendering markdown.</p>';
+                            console.error(e);
+                        }
+                    } else {
+                        previewBlock.innerHTML = '<p>Rendering library not loaded.</p>';
+                    }
+                }
+            }
+        };
+
+        const updateView = () => {
+            if (isPreview) {
+                if (preBlock) preBlock.style.display = 'none';
+                if (previewBlock) previewBlock.style.display = 'block';
+                previewBtn.innerHTML = '<i class="fas fa-code"></i> Source';
+                renderMarkdown();
+            } else {
+                if (preBlock) preBlock.style.display = 'block';
+                if (previewBlock) previewBlock.style.display = 'none';
+                previewBtn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+            }
+        };
+
+        // Initial render if default is markdown
+        if (isPreview) {
+            renderMarkdown();
+        }
+
+        previewBtn.addEventListener('click', () => {
+            isPreview = !isPreview;
+            updateView();
+        });
     }
 });
