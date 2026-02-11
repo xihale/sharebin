@@ -2,63 +2,59 @@ import { ALLOWED_LANGUAGES } from './languages'
 
 // --- Configuration ---
 
-const CDN_BASE = "https://cdn.jsdelivr.net/npm";
+const CDN_BASE = "https://npm.webcache.cn";
 const FONTS_BASE = "https://fonts.googleapis.com/css2";
 
-// SRI (Subresource Integrity) hashes - SHA-256
-// Standard hashes for jsDelivr
 const SRI = {
-    fontAwesome: "sha256-5S539Gf278W5B7/6u55S8vYw24+1uO+T4KPrK2lK8K8=",
-    cmCss: "sha256-4YI2uUj37FidN/uE1CdfI70+7Xk+Uu0fFNoU6lXm1gE=",
-    cmJs: "sha256-9A105Bv1DEn4T0mN/0096L35D62R2m8F05G082F07G0=",
-    cmThemeLight: "sha256-C44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    cmThemeDark: "sha256-D44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    cmMatchBrackets: "sha256-E44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    cmCloseBrackets: "sha256-F44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    cmActiveLine: "sha256-G44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    prismJs: "sha256-FobIu91yG7qU026SNojH6sK1Kk/9k9k9k9k9k9k9k9k=",
-    prismCssLight: "sha256-H44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    prismCssDark: "sha256-I44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    prismAutoloader: "sha256-J44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    prismLineNumbersJs: "sha256-K44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    prismLineNumbersCss: "sha256-L44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
-    markdownCss: "sha256-p6FcUux1EutsFcWT+yiWFsaYfdDjPo4HLZvj/nnu2xg=",
-    markedJs: "sha256-y0zy7+/SsfYCvy8n1ZT8CiY0DSZhtgzd/KrHp7kmGIY=",
+    fontAwesome: "sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=",
+    cmCss: "sha256-60lOqXLSZh74b39qxlbdZ4bXIeScnBtG4euWfktvm/M=",
+    cmJs: "sha256-jotePMS+dTCptrYkvOlf+WbNZnKDAFoQNzn+N9O92Xw=",
+    cmThemeLight: "sha256-KWl1QR5Q0aRIVE3Y0JUD4B6h48uRxo9QcYLCA4swLTk=",
+    cmThemeDark: "sha256-IrWPRgJrN/8W3h03+aP+ttWvajUK21zJMfKagf6hvcc=",
+    cmMatchBrackets: "sha256-nSOhd/Hk0H46zDfCEP++TBwutNVbvlTBbT5609BNBAE=",
+    cmCloseBrackets: "sha256-FDwwFMKSVPNTHMML5tkCBQhLz8Ns/6b5sqRv1CpAviA=",
+    cmActiveLine: "sha256-OvvPeINcm9w0LjmSxT2bdChnImE7saitydFA7chzfug=",
+    prismJs: "sha256-uAFFHZtMvxhXcVqX7K5ELibBEbq24Z/uDoPf2nDMKQA=",
+    prismCssLight: "sha256-ko4j5rn874LF8dHwW29/xabhh8YBleWfvxb8nQce4Fc=",
+    prismCssDark: "sha256-GxX+KXGZigSK67YPJvbu12EiBx257zuZWr0AMiT1Kpg=",
+    prismAutoloader: "sha256-AjM0J5XIbiB590BrznLEgZGLnOQWrt62s3BEq65Q/I0=",
+    prismLineNumbersJs: "sha256-9cmf7tcLdXpKsPi/2AWE93PbZpTp4M4tqzFk+lWomjU=",
+    prismLineNumbersCss: "sha256-4CROCOz16nRjanuxMghkzZzCOdmwLXxFqCMCW7XG/lA=",
+    markdownCss: "sha256-+HSOpaIGcmAADi/gu0gQiTIgcgzYEy+b044W1DeUPZE=",
+    markedJs: "sha256-0Gqqc6qDjaGiCel1fQ9L/svzu+lFgZccwKICNTpRE38=",
     dompurifyJs: "sha256-o4dmiN/9oJkRdegv9EfbqViVvMcC9TiNBP+qYkD0OrI="
 };
 
 const ASSETS = {
     fonts: `${FONTS_BASE}?family=Inter:wght@300..600&family=JetBrains+Mono:wght@400..500&display=swap`,
-    icons: { url: `${CDN_BASE}/@fortawesome/fontawesome-free@6.5.1/css/all.min.css` },
+    icons: { url: `${CDN_BASE}/@fortawesome/fontawesome-free@6.5.1/css/all.min.css`, integrity: SRI.fontAwesome },
     codemirror: {
-        css: { url: `${CDN_BASE}/codemirror@5.65.20/lib/codemirror.min.css` },
-        themeLight: { url: `${CDN_BASE}/codemirror@5.65.20/theme/xq-light.min.css` },
-        themeDark: { url: `${CDN_BASE}/codemirror@5.65.20/theme/material-palenight.min.css` },
-        js: { url: `${CDN_BASE}/codemirror@5.65.20/lib/codemirror.min.js` },
+        css: { url: `${CDN_BASE}/codemirror@5.65.20/lib/codemirror.css`, integrity: SRI.cmCss },
+        themeLight: { url: `${CDN_BASE}/codemirror@5.65.20/theme/xq-light.css`, integrity: SRI.cmThemeLight },
+        themeDark: { url: `${CDN_BASE}/codemirror@5.65.20/theme/material-palenight.css`, integrity: SRI.cmThemeDark },
+        js: { url: `${CDN_BASE}/codemirror@5.65.20/lib/codemirror.js`, integrity: SRI.cmJs },
         addons: [
-            { url: `${CDN_BASE}/codemirror@5.65.20/addon/edit/matchbrackets.min.js` },
-            { url: `${CDN_BASE}/codemirror@5.65.20/addon/edit/closebrackets.min.js` },
-            { url: `${CDN_BASE}/codemirror@5.65.20/addon/selection/active-line.min.js` }
+            { url: `${CDN_BASE}/codemirror@5.65.20/addon/edit/matchbrackets.js`, integrity: SRI.cmMatchBrackets },
+            { url: `${CDN_BASE}/codemirror@5.65.20/addon/edit/closebrackets.js`, integrity: SRI.cmCloseBrackets },
+            { url: `${CDN_BASE}/codemirror@5.65.20/addon/selection/active-line.js`, integrity: SRI.cmActiveLine }
         ]
     },
     prism: {
-        cssLight: { url: `${CDN_BASE}/prismjs@1.30.0/themes/prism.min.css` },
-        cssDark: { url: `${CDN_BASE}/prismjs@1.30.0/themes/prism-tomorrow.min.css` },
-        cssLineNumbers: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css` },
-        js: { url: `${CDN_BASE}/prismjs@1.30.0/prism.min.js` },
-        autoloader: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js` },
-        lineNumbers: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js` }
+        cssLight: { url: `${CDN_BASE}/prismjs@1.30.0/themes/prism.min.css`, integrity: SRI.prismCssLight },
+        cssDark: { url: `${CDN_BASE}/prismjs@1.30.0/themes/prism-tomorrow.min.css`, integrity: SRI.prismCssDark },
+        cssLineNumbers: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css`, integrity: SRI.prismLineNumbersCss },
+        js: { url: `${CDN_BASE}/prismjs@1.30.0/prism.js`, integrity: SRI.prismJs },
+        autoloader: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js`, integrity: SRI.prismAutoloader },
+        lineNumbers: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js`, integrity: SRI.prismLineNumbersJs }
     },
     markdown: {
-        css: { url: `${CDN_BASE}/github-markdown-css@5.5.1/github-markdown.min.css` },
-        js: { url: `${CDN_BASE}/marked@12.0.1/lib/marked.umd.js` },
-        purify: { url: `${CDN_BASE}/dompurify@3.0.9/dist/purify.min.js` }
+        css: { url: `${CDN_BASE}/github-markdown-css@5.5.1/github-markdown.min.css`, integrity: SRI.markdownCss },
+        js: { url: `${CDN_BASE}/marked@12.0.1/lib/marked.umd.js`, integrity: SRI.markedJs },
+        purify: { url: `${CDN_BASE}/dompurify@3.0.9/dist/purify.min.js`, integrity: SRI.dompurifyJs }
     },
-    flourite: { url: "https://npm.webcache.cn/flourite@1.3.0/dist/index.iife.js" },
+    flourite: { url: `${CDN_BASE}/flourite@1.3.0/dist/index.iife.js` },
     turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js"
 };
-
-// --- Helpers ---
 
 function sanitizeLanguage(lang: string): string {
     if (!lang || typeof lang !== 'string') return 'plaintext';

@@ -2,7 +2,7 @@
 node_modules/
 package-lock.json
 # bun.lock
-# .wrangler/
+.wrangler/
 .dev.vars
 dev_server.log
 wrangler*.log

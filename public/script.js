@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Configuration for Dynamic Loading via CDN ---
     if (typeof Prism !== 'undefined' && Prism.plugins.autoloader) {
-        Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/';
+        Prism.plugins.autoloader.languages_path = 'https://npm.webcache.cn/prismjs@1.30.0/components/';
     }
 
     const FLOURITE_TO_PRISM = {
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadPrismLanguages(dataList) {
         try {
-            const res = await fetch('https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components.json');
+            const res = await fetch('https://npm.webcache.cn/prismjs@1.30.0/components.json');
             const json = await res.json();
             const languages = json.languages;
 
