@@ -140,11 +140,11 @@ app.use('*', async (c, next) => {
     // Explicitly set CSP with 'self' and correct format
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' https://npm.webcache.cn https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-RlhVC6WGhVrcsY0hAmbU/YhaSUz2iA2q1f16/7A6jLU='`,
-      "style-src 'self' 'unsafe-inline' https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://fonts.loli.net https://fonts.googleapis.com",
+      `script-src 'self' 'nonce-${nonce}' https://npm.webcache.cn https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-RlhVC6WGhVrcsY0hAmbU/YhaSUz2iA2q1f16/7A6jLU='`,
+      "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
       "img-src 'self' data: https://challenges.cloudflare.com",
-      "font-src 'self' https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://gstatic.loli.net https://fonts.gstatic.com",
-      "connect-src 'self' blob: data: https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+      "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
+      "connect-src 'self' blob: data: https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://challenges.cloudflare.com",
       "frame-src 'self' https://challenges.cloudflare.com",
       "base-uri 'self'",
       "form-action 'self'"

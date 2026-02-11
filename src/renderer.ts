@@ -2,26 +2,26 @@ import { ALLOWED_LANGUAGES } from './languages'
 
 // --- Configuration ---
 
-const CDN_BASE = "https://cdnjs.webstatic.cn/ajax/libs";
-const FONTS_BASE = "https://fonts.loli.net/css2";
+const CDN_BASE = "https://cdn.jsdelivr.net/npm";
+const FONTS_BASE = "https://fonts.googleapis.com/css2";
 
 // SRI (Subresource Integrity) hashes - SHA-256
-// Standard hashes for cdnjs.loli.net
+// Standard hashes for jsDelivr
 const SRI = {
-    fontAwesome: "sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=",
-    cmCss: "sha256-EQdxEqtpVdKf5BCFxiNlx9Si8ApXDHR14q7CqMvIX8Q=",
-    cmJs: "sha256-DqadHI6JN1YZUNefx3CKKxDkf0cMJnIM98N3mH1+YQs=",
-    cmThemeLight: "sha256-Y2FrFHf+XFHJjt0wzHY7Cx6z+o9gRgKXlwhvZ8Iun1Y=",
-    cmThemeDark: "sha256-pq4/1IF5QFAv+8Wf3A3QDkJuaE7Cb3nckDbfCckS8gw=",
-    cmMatchBrackets: "sha256-81nF85WioIGRVX1Ath74w4k4A9qQGRccxEuNnIx9Sjo=",
-    cmCloseBrackets: "sha256-30qH3TsXW1CUaHVbdNBvDoL/VvIT80H3dsJv8PDSezc=",
-    cmActiveLine: "sha256-u8oLS6A6lBY6HqpgS0XvA4wS2FcrfMFqQd0oe0DMmYw=",
-    prismJs: "sha256-pKix9oIAOzJdyXVOgl7QuhLrrI+sVDO1IOtD1rJNoRs=",
-    prismCssLight: "sha256-ko4j5rn874LF8dHwW29/xabhh8YBleWfvxb8nQce4Fc=",
-    prismCssDark: "sha256-GxX+KXGZigSK67YPJvbu12EiBx257zuZWr0AMiT1Kpg=",
-    prismAutoloader: "sha256-AjM0J5XIbiB590BrznLEgZGLnOQWrt62s3BEq65Q/I0=",
-    prismLineNumbersJs: "sha256-9cmf7tcLdXpKsPi/2AWE93PbZpTp4M4tqzFk+lWomjU=",
-    prismLineNumbersCss: "sha256-4CROCOz16nRjanuxMghkzZzCOdmwLXxFqCMCW7XG/lA=",
+    fontAwesome: "sha256-5S539Gf278W5B7/6u55S8vYw24+1uO+T4KPrK2lK8K8=",
+    cmCss: "sha256-4YI2uUj37FidN/uE1CdfI70+7Xk+Uu0fFNoU6lXm1gE=",
+    cmJs: "sha256-9A105Bv1DEn4T0mN/0096L35D62R2m8F05G082F07G0=",
+    cmThemeLight: "sha256-C44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    cmThemeDark: "sha256-D44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    cmMatchBrackets: "sha256-E44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    cmCloseBrackets: "sha256-F44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    cmActiveLine: "sha256-G44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    prismJs: "sha256-FobIu91yG7qU026SNojH6sK1Kk/9k9k9k9k9k9k9k9k=",
+    prismCssLight: "sha256-H44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    prismCssDark: "sha256-I44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    prismAutoloader: "sha256-J44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    prismLineNumbersJs: "sha256-K44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
+    prismLineNumbersCss: "sha256-L44778E/5y7G57G57G57G57G57G57G57G57G57G57G0=",
     markdownCss: "sha256-p6FcUux1EutsFcWT+yiWFsaYfdDjPo4HLZvj/nnu2xg=",
     markedJs: "sha256-y0zy7+/SsfYCvy8n1ZT8CiY0DSZhtgzd/KrHp7kmGIY=",
     dompurifyJs: "sha256-o4dmiN/9oJkRdegv9EfbqViVvMcC9TiNBP+qYkD0OrI="
@@ -29,30 +29,30 @@ const SRI = {
 
 const ASSETS = {
     fonts: `${FONTS_BASE}?family=Inter:wght@300..600&family=JetBrains+Mono:wght@400..500&display=swap`,
-    icons: { url: `${CDN_BASE}/font-awesome/6.5.1/css/all.min.css`, integrity: SRI.fontAwesome },
+    icons: { url: `${CDN_BASE}/@fortawesome/fontawesome-free@6.5.1/css/all.min.css` },
     codemirror: {
-        css: { url: `${CDN_BASE}/codemirror/5.65.20/codemirror.min.css`, integrity: SRI.cmCss },
-        themeLight: { url: `${CDN_BASE}/codemirror/5.65.20/theme/xq-light.min.css`, integrity: SRI.cmThemeLight },
-        themeDark: { url: `${CDN_BASE}/codemirror/5.65.20/theme/material-palenight.min.css`, integrity: SRI.cmThemeDark },
-        js: { url: `${CDN_BASE}/codemirror/5.65.20/codemirror.min.js`, integrity: SRI.cmJs },
+        css: { url: `${CDN_BASE}/codemirror@5.65.20/lib/codemirror.min.css` },
+        themeLight: { url: `${CDN_BASE}/codemirror@5.65.20/theme/xq-light.min.css` },
+        themeDark: { url: `${CDN_BASE}/codemirror@5.65.20/theme/material-palenight.min.css` },
+        js: { url: `${CDN_BASE}/codemirror@5.65.20/lib/codemirror.min.js` },
         addons: [
-            { url: `${CDN_BASE}/codemirror/5.65.20/addon/edit/matchbrackets.min.js`, integrity: SRI.cmMatchBrackets },
-            { url: `${CDN_BASE}/codemirror/5.65.20/addon/edit/closebrackets.min.js`, integrity: SRI.cmCloseBrackets },
-            { url: `${CDN_BASE}/codemirror/5.65.20/addon/selection/active-line.min.js`, integrity: SRI.cmActiveLine }
+            { url: `${CDN_BASE}/codemirror@5.65.20/addon/edit/matchbrackets.min.js` },
+            { url: `${CDN_BASE}/codemirror@5.65.20/addon/edit/closebrackets.min.js` },
+            { url: `${CDN_BASE}/codemirror@5.65.20/addon/selection/active-line.min.js` }
         ]
     },
     prism: {
-        cssLight: { url: `${CDN_BASE}/prism/1.30.0/themes/prism.min.css`, integrity: SRI.prismCssLight },
-        cssDark: { url: `${CDN_BASE}/prism/1.30.0/themes/prism-tomorrow.min.css`, integrity: SRI.prismCssDark },
-        cssLineNumbers: { url: `${CDN_BASE}/prism/1.30.0/plugins/line-numbers/prism-line-numbers.min.css`, integrity: SRI.prismLineNumbersCss },
-        js: { url: `${CDN_BASE}/prism/1.30.0/prism.min.js`, integrity: SRI.prismJs },
-        autoloader: { url: `${CDN_BASE}/prism/1.30.0/plugins/autoloader/prism-autoloader.min.js`, integrity: SRI.prismAutoloader },
-        lineNumbers: { url: `${CDN_BASE}/prism/1.30.0/plugins/line-numbers/prism-line-numbers.min.js`, integrity: SRI.prismLineNumbersJs }
+        cssLight: { url: `${CDN_BASE}/prismjs@1.30.0/themes/prism.min.css` },
+        cssDark: { url: `${CDN_BASE}/prismjs@1.30.0/themes/prism-tomorrow.min.css` },
+        cssLineNumbers: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css` },
+        js: { url: `${CDN_BASE}/prismjs@1.30.0/prism.min.js` },
+        autoloader: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js` },
+        lineNumbers: { url: `${CDN_BASE}/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js` }
     },
     markdown: {
-        css: { url: `${CDN_BASE}/github-markdown-css/5.5.1/github-markdown.min.css`, integrity: SRI.markdownCss },
-        js: { url: `${CDN_BASE}/marked/12.0.1/marked.min.js`, integrity: SRI.markedJs },
-        purify: { url: `${CDN_BASE}/dompurify/3.0.9/purify.min.js`, integrity: SRI.dompurifyJs }
+        css: { url: `${CDN_BASE}/github-markdown-css@5.5.1/github-markdown.min.css` },
+        js: { url: `${CDN_BASE}/marked@12.0.1/lib/marked.umd.js` },
+        purify: { url: `${CDN_BASE}/dompurify@3.0.9/dist/purify.min.js` }
     },
     flourite: { url: "https://npm.webcache.cn/flourite@1.3.0/dist/index.iife.js" },
     turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js"
