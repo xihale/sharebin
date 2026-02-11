@@ -1,19 +1,13 @@
 # Dependencies
 node_modules/
 package-lock.json
-bun.lock
-
-# Build & System
-dist/
-.wrangler/
+# bun.lock
+# .wrangler/
 .dev.vars
 dev_server.log
 wrangler*.log
 .DS_Store
 
-# Automated Assets (Managed by npm run setup-assets)
-public/libs/
-
 # User Configuration
-# wrangler.jsonc
 wrangler.jsonc
+

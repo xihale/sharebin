@@ -4,23 +4,13 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "setup-assets": "node scripts/setup-assets.cjs",
-    "postinstall": "npm run setup-assets"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.1.0",
-    "@ray-d-song/guesslang-js": "^0.1.0",
-    "@tensorflow/tfjs": "^4.22.0",
-    "clean-css-cli": "^5.6.3",
-    "codemirror": "^5.65.20",
-    "hono": "^4.11.3",
-    "prismjs": "^1.30.0",
-    "terser": "^5.44.1"
+    "hono": "^4.11.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251223.0",
-    "@types/codemirror": "^5.60.17",
     "wrangler": "^4.4.0"
   }
 }

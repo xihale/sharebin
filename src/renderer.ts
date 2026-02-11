@@ -22,7 +22,6 @@ const SRI = {
     prismAutoloader: "sha256-AjM0J5XIbiB590BrznLEgZGLnOQWrt62s3BEq65Q/I0=",
     prismLineNumbersJs: "sha256-9cmf7tcLdXpKsPi/2AWE93PbZpTp4M4tqzFk+lWomjU=",
     prismLineNumbersCss: "sha256-4CROCOz16nRjanuxMghkzZzCOdmwLXxFqCMCW7XG/lA=",
-    tensorflow: "sha256-MA364nPSC0BG9GoG1zVojwNnWoB1Yem8tfZk6y89KDE=",
     markdownCss: "sha256-p6FcUux1EutsFcWT+yiWFsaYfdDjPo4HLZvj/nnu2xg=",
     markedJs: "sha256-y0zy7+/SsfYCvy8n1ZT8CiY0DSZhtgzd/KrHp7kmGIY=",
     dompurifyJs: "sha256-o4dmiN/9oJkRdegv9EfbqViVvMcC9TiNBP+qYkD0OrI="
@@ -55,7 +54,7 @@ const ASSETS = {
         js: { url: `${CDN_BASE}/marked/12.0.1/marked.min.js`, integrity: SRI.markedJs },
         purify: { url: `${CDN_BASE}/dompurify/3.0.9/purify.min.js`, integrity: SRI.dompurifyJs }
     },
-    tensorflow: { url: `${CDN_BASE}/tensorflow/4.22.0/tf.min.js`, integrity: SRI.tensorflow },
+    flourite: { url: "https://npm.webcache.cn/flourite@1.3.0/dist/index.iife.js" },
     turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js"
 };
 
@@ -156,13 +155,13 @@ function renderStyles(nonce: string) {
 }
 
 function renderScripts(readOnly: boolean, safeLanguageJson: string, turnstileSiteKey: string, nonce: string) {
-    const jsAssets = [
+    const jsAssets: Array<{ url: string; integrity?: string }> = [
         { url: ASSETS.prism.js.url, integrity: ASSETS.prism.js.integrity },
         { url: ASSETS.prism.autoloader.url, integrity: ASSETS.prism.autoloader.integrity },
         { url: ASSETS.prism.lineNumbers.url, integrity: ASSETS.prism.lineNumbers.integrity },
         { url: ASSETS.markdown.js.url, integrity: ASSETS.markdown.js.integrity },
         { url: ASSETS.markdown.purify.url, integrity: ASSETS.markdown.purify.integrity },
-        { url: ASSETS.tensorflow.url, integrity: ASSETS.tensorflow.integrity },
+        { url: ASSETS.flourite.url },
         { url: ASSETS.codemirror.js.url, integrity: ASSETS.codemirror.js.integrity },
         ...ASSETS.codemirror.addons
     ];

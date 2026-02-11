@@ -69,55 +69,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         Prism.plugins.autoloader.languages_path = 'https://cdnjs.webstatic.cn/ajax/libs/prism/1.30.0/components/';
     }
 
-    // --- ML Language Detection (GuessLang) ---
-    let guessLang = null;
-    const GUESSTOLANG_MAP = {
-        'asm': 'asm6502', 'bat': 'batch', 'c': 'c', 'cbl': 'cobol', 'clj': 'clojure',
-        'cmake': 'cmake', 'coffee': 'coffeescript', 'cpp': 'cpp', 'cs': 'csharp',
-        'css': 'css', 'csv': 'csv', 'dart': 'dart', 'dm': 'dm', 'dockerfile': 'docker',
-        'ex': 'elixir', 'erl': 'erlang', 'f90': 'fortran', 'go': 'go', 'groovy': 'groovy',
-        'hs': 'haskell', 'html': 'markup', 'ini': 'ini', 'java': 'java', 'jl': 'julia',
-        'js': 'javascript', 'json': 'json', 'kt': 'kotlin', 'lisp': 'lisp', 'lua': 'lua',
-        'makefile': 'makefile', 'matlab': 'matlab', 'md': 'markdown', 'mm': 'cpp',
-        'pas': 'pascal', 'php': 'php', 'pl': 'perl', 'ps1': 'powershell', 'py': 'python',
-        'r': 'r', 'rb': 'ruby', 'rs': 'rust', 'scala': 'scala', 'sh': 'bash',
-        'sql': 'sql', 'swift': 'swift', 'tex': 'latex', 'toml': 'toml', 'ts': 'typescript',
-        'v': 'verilog', 'vba': 'vba', 'xml': 'xml', 'yaml': 'yaml'
+    const FLOURITE_TO_PRISM = {
+        'html': 'markup',
+        'dockerfile': 'docker',
+        'csharp': 'csharp',
+        'javascript': 'javascript',
+        'typescript': 'typescript',
+        'markdown': 'markdown',
+        'bash': 'bash',
+        'shell': 'bash'
     };
 
-    async function initML() {
-        try {
-            // Ensure TF is ready
-            if (typeof tf !== 'undefined') {
-                await tf.ready();
-                await tf.setBackend('cpu');
-                console.log("TensorFlow Ready, Backend:", tf.getBackend());
-            }
-
-            const module = await import('/libs/guesslang/index.mjs');
-            // Force minContentSize to 0 to detect even short snippets
-            guessLang = new module.GuessLang({ minContentSize: 0 });
-            console.log("ML Detection Initialized (GuessLang)");
-        } catch (e) {
-            console.error("ML Init Failed:", e);
-        }
-    }
-    initML();
-
-    async function detectLanguageML(fullCode) {
-        if (!fullCode || !guessLang) return null;
+    async function detectLanguage(fullCode) {
+        if (!fullCode || typeof flourite === 'undefined') return null;
         
         try {
-            const results = await guessLang.runModel(fullCode);
-            console.log("ML Results:", results); // Debugging
-            const threshold = (results[0].languageId === 'ini') ? 0.3 : 0.15;
-            if (results && results.length > 0 && results[0].confidence > threshold) {
-                const id = results[0].languageId;
-                const mapped = GUESSTOLANG_MAP[id] || id;
-                console.log(`ML Detected: ${id} -> ${mapped} (${Math.round(results[0].confidence * 100)}%)`);
+            const result = flourite(fullCode, { shiki: true, noUnknown: true });
+            if (result && result.language && result.language !== 'Unknown') {
+                const id = result.language.toLowerCase();
+                const mapped = FLOURITE_TO_PRISM[id] || id;
+                console.log(`Flourite Detected: ${result.language} -> ${mapped}`);
                 return mapped;
             }
-        } catch (e) { console.error("ML Detection Error:", e); }
+        } catch (e) { console.error("Flourite Detection Error:", e); }
         return null;
     }
 
@@ -144,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadPrismLanguages(dataList) {
         try {
-            const res = await fetch('/libs/prism/components.json');
+            const res = await fetch('https://cdnjs.webstatic.cn/ajax/libs/prism/1.30.0/components.json');
             const json = await res.json();
             const languages = json.languages;
 
@@ -218,7 +192,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 matchBrackets: true,
                 autoCloseBrackets: true,
                 lineWrapping: true,
-                autofocus: true
+                autofocus: true,
+                viewportMargin: Infinity
             });
 
             // Listen for theme changes
@@ -289,7 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     clearTimeout(detectTimer);
                     detectTimer = setTimeout(async () => {
                         console.log("Detecting language for content length:", content.length);
-                        const detected = await detectLanguageML(content);
+                        const detected = await detectLanguage(content);
                         if (detected && detected !== langInput.value) {
                             langInput.value = detected;
                             setEditorMode(editor, detected);
