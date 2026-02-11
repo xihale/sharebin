@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Configuration for Dynamic Loading via CDN ---
     if (typeof Prism !== 'undefined' && Prism.plugins.autoloader) {
-        Prism.plugins.autoloader.languages_path = 'https://cdnjs.webcache.cn/ajax/libs/prism/1.30.0/components/';
+        Prism.plugins.autoloader.languages_path = 'https://cdnjs.webstatic.cn/ajax/libs/prism/1.30.0/components/';
     }
 
     // --- ML Language Detection (GuessLang) ---
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const toast = document.getElementById('toast');
         if (!toast) return;
         toast.innerHTML = isError ? `<i class="fas fa-exclamation-circle"></i> ${message}` : message;
-        toast.style.background = isError ? '#ff4757' : 'rgba(0,0,0,0.8)';
+        toast.classList.toggle('error', isError);
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
@@ -506,7 +506,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                     if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
                         try {
-                            previewBlock.innerHTML = DOMPurify.sanitize(marked.parse(rawContent));
+                            const renderer = new marked.Renderer();
+                            renderer.code = (code, lang) => {
+                                const language = lang || 'plaintext';
+                                return `<div class="code-block-wrapper">
+                                            <button class="copy-snippet-btn"><i class="far fa-copy"></i></button>
+                                            <pre class="line-numbers language-${language}"><code class="language-${language}">${code}</code></pre>
+                                        </div>`;
+                            };
+                            
+                            previewBlock.innerHTML = DOMPurify.sanitize(marked.parse(rawContent, { renderer }));
+                            
+                            if (typeof Prism !== 'undefined') {
+                                Prism.highlightAllUnder(previewBlock);
+                            }
+
+                            previewBlock.querySelectorAll('.copy-snippet-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const codeText = btn.nextElementSibling.querySelector('code').innerText;
+                                    navigator.clipboard.writeText(codeText).then(() => {
+                                        showToast('<i class="fas fa-code"></i> Code Copied!');
+                                    });
+                                });
+                            });
                         } catch(e) {
                             previewBlock.innerHTML = '<p style="color:red">Error rendering markdown.</p>';
                             console.error(e);

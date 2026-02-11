@@ -134,6 +134,7 @@ main { flex: 1; display: flex; flex-direction: column; position: relative; overf
 
 #viewer-container {
   overflow: auto; /* Allow native scroll for viewer */
+  cursor: auto;
 }
 
 #editor-container {
@@ -165,31 +166,35 @@ main { flex: 1; display: flex; flex-direction: column; position: relative; overf
 .CodeMirror-selectedtext { background: none; }
 
 /* Prism Overrides for Consistency */
-pre[class*="language-"] {
+pre[class*="language-"],
+.markdown-body pre[class*="language-"] {
     font-family: var(--font-mono) !important;
     font-size: 14px !important;
     line-height: 1.6 !important;
     text-shadow: none !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    background: transparent !important;
-    padding: 1rem !important; /* Padding only on PRE */
+    border-radius: 6px !important;
+    margin: 0 0 1rem 0 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 0 !important;
     height: auto !important;
-    min-height: 100%;
+    min-height: auto;
     box-sizing: border-box; 
     color: var(--fg);
-    position: relative;
+    position: relative !important;
+    border: 1px solid var(--border) !important;
 }
 
 /* Ensure code acts as block for full height calculation */
-code[class*="language-"] {
+code[class*="language-"],
+.markdown-body code[class*="language-"] {
     font-family: var(--font-mono) !important;
     font-size: 14px !important;
     line-height: 1.6 !important;
     text-shadow: none !important;
     background: transparent !important;
-    padding: 0 !important; /* NO padding on CODE */
+    padding: 1rem !important; 
     display: block; 
+    color: inherit;
 }
 
 /* Prism Selection Style */
@@ -197,25 +202,33 @@ code[class*="language-"]::selection, code[class*="language-"] *::selection { bac
 pre[class*="language-"]::selection, pre[class*="language-"] *::selection { background: var(--selection); }
 
 /* Line numbers adjustments */
-pre[class*="language-"].line-numbers {
-    padding-left: 4.5rem !important; /* Total left space */
+pre[class*="language-"].line-numbers code,
+.markdown-body pre[class*="language-"].line-numbers code {
+    padding-left: 3.8rem !important;
 }
 
-.line-numbers .line-numbers-rows {
-    position: absolute;
-    top: 0;
-    left: -4.5rem !important; /* Pull back to the left edge of PRE */
-    width: 3.5rem !important; /* Width of the number column */
-    border-right: 1px solid #ddd !important; /* High contrast for light mode */
-    padding-top: 0 !important; /* Remove incorrect padding */
-    height: 100%; /* Ensure full height */
-    background: var(--bg); /* Optional: distinct bg for gutter */
+.line-numbers .line-numbers-rows,
+.markdown-body .line-numbers-rows {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 3rem !important;
+    padding: 1rem 0 !important;
+    margin: 0 !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-right: 1px solid var(--border) !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
     pointer-events: none;
+    box-sizing: border-box !important;
 }
 
 @media (prefers-color-scheme: dark) {
-    .line-numbers .line-numbers-rows {
-        border-right-color: #4a5068 !important; /* High contrast for dark mode */
+    .line-numbers .line-numbers-rows,
+    .markdown-body .line-numbers-rows {
+        border-right-color: var(--border) !important;
+        background: rgba(0, 0, 0, 0.2) !important;
     }
 }
 
@@ -223,6 +236,28 @@ pre[class*="language-"].line-numbers {
 .line-numbers-rows > span {
     display: block;
     counter-increment: linenumber;
+}
+
+.line-numbers-rows > span:before {
+    content: counter(linenumber);
+    color: #6c7086;
+    display: block;
+    padding-right: 0.8rem;
+    text-align: right;
+}
+
+.markdown-body code:not(pre code) {
+    background-color: rgba(128, 128, 128, 0.15) !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 4px !important;
+    font-size: 85% !important;
+    font-family: var(--font-mono) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .markdown-body code:not(pre code) {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
 }
 
 /* Copy Code Button */
@@ -245,7 +280,31 @@ pre[class*="language-"].line-numbers {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-.copy-code-btn:hover {
+.copy-snippet-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    color: var(--fg);
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+.code-block-wrapper:hover .copy-snippet-btn {
+    opacity: 1;
+}
+
+.code-block-wrapper {
+    position: relative;
+}
+
+.copy-code-btn:hover, .copy-snippet-btn:hover {
     background: var(--input-hover);
     border-color: #999;
 }
@@ -310,8 +369,8 @@ pre[class*="language-"].line-numbers {
   position: fixed;
   top: 80px;
   right: 2rem;
-  background: var(--fg);
-  color: var(--bg);
+  background: #1e1e1e;
+  color: #ffffff;
   padding: 0.8rem 1.2rem;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -323,8 +382,14 @@ pre[class*="language-"].line-numbers {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
 }
+
+.toast.error {
+    background: #ff4757;
+}
+
 .toast.show { opacity: 1; transform: translateY(0); }
 
 /* Overlay for result */
@@ -459,17 +524,20 @@ pre[class*="language-"].line-numbers {
   }
 
   /* Viewer Adjustments */
-  pre[class*="language-"] {
+  pre[class*="language-"] code,
+  .markdown-body pre[class*="language-"] code {
       padding: 0.5rem !important;
   }
   
   /* Compact Line Numbers */
-  pre[class*="language-"].line-numbers {
-      padding-left: 3rem !important;
+  pre[class*="language-"].line-numbers code,
+  .markdown-body pre[class*="language-"].line-numbers code {
+      padding-left: 2.5rem !important;
   }
-  .line-numbers .line-numbers-rows {
+  .line-numbers .line-numbers-rows,
+  .markdown-body .line-numbers-rows {
       width: 2rem !important;
-      left: -3rem !important;
+      padding: 0.5rem 0 !important;
   }
   
   /* CodeMirror Adjustments */
@@ -489,8 +557,8 @@ pre[class*="language-"].line-numbers {
       transform: translateX(-50%) translateY(10px);
       width: auto;
       white-space: nowrap;
-      background: var(--fg);
-      color: var(--bg);
+      background: #1e1e1e;
+      color: #ffffff;
   }
   .toast.show {
       transform: translateX(-50%) translateY(0);

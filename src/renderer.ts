@@ -2,7 +2,7 @@ import { ALLOWED_LANGUAGES } from './languages'
 
 // --- Configuration ---
 
-const CDN_BASE = "https://cdnjs.loli.net/ajax/libs";
+const CDN_BASE = "https://cdnjs.webstatic.cn/ajax/libs";
 const FONTS_BASE = "https://fonts.loli.net/css2";
 
 // SRI (Subresource Integrity) hashes - SHA-256
@@ -102,7 +102,31 @@ function renderStyles(nonce: string) {
         @media (prefers-color-scheme: dark) {
             .line-numbers .line-numbers-rows { border-right-color: #444 !important; }
             .line-numbers-rows > span:before { color: #666 !important; }
-            .markdown-body { background-color: #0d1117 !important; color: #c9d1d9 !important; }
+            .markdown-body { 
+                background-color: var(--bg) !important; 
+                color: var(--fg) !important; 
+            }
+            .markdown-body pre {
+                background-color: transparent !important;
+                color: inherit !important;
+            }
+            .markdown-body blockquote {
+                color: #8b949e;
+                border-left-color: #30363d;
+            }
+            .markdown-body table tr {
+                background-color: var(--bg);
+                border-top-color: #30363d;
+            }
+            .markdown-body table tr:nth-child(2n) {
+                background-color: rgba(255,255,255,0.02);
+            }
+            .markdown-body table td, .markdown-body table th {
+                border-color: #30363d;
+            }
+            .markdown-body h1, .markdown-body h2 {
+                border-bottom-color: #30363d;
+            }
         }
         .markdown-body {
             box-sizing: border-box;
@@ -110,6 +134,8 @@ function renderStyles(nonce: string) {
             max-width: 980px;
             margin: 0 auto;
             padding: 45px;
+            background-color: var(--bg) !important;
+            color: var(--fg) !important;
         }
         @media (max-width: 767px) {
             .markdown-body {
@@ -288,6 +314,7 @@ export function renderPage(
         content: contentFinal,
         headerMeta: headerContent,
         styles: renderStyles(nonce),
-        scripts: renderScripts(readOnly, safeLanguageJson, turnstileSiteKey, nonce)
+        scripts: renderScripts(readOnly, safeLanguageJson, turnstileSiteKey, nonce),
+        mainStyle: 'background: var(--bg);'
     });
 }

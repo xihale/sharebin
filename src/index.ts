@@ -22,11 +22,19 @@ const TURNSTILE_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 function getTurnstileConfig(c: any) {
   const url = new URL(c.req.url);
-  const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  return {
-    siteKey: isLocal ? TURNSTILE_TEST_SITE_KEY : c.env.TURNSTILE_SITE_KEY,
-    secretKey: isLocal ? TURNSTILE_TEST_SECRET_KEY : c.env.TURNSTILE_SECRET_KEY
+  const isProd = url.hostname === 'share.xihale.top';
+  const useTestKey = !isProd;
+  
+  const config = {
+    siteKey: useTestKey ? TURNSTILE_TEST_SITE_KEY : c.env.TURNSTILE_SITE_KEY,
+    secretKey: useTestKey ? TURNSTILE_TEST_SECRET_KEY : c.env.TURNSTILE_SECRET_KEY
   };
+
+  if (useTestKey) {
+    console.log(`[Dev] Using Turnstile Test Keys for hostname: ${url.hostname}`);
+  }
+  
+  return config;
 }
 
 async function checkRateLimit(c: any, ip: string): Promise<boolean> {
@@ -132,11 +140,11 @@ app.use('*', async (c, next) => {
     // Explicitly set CSP with 'self' and correct format
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://cdnjs.loli.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-RlhVC6WGhVrcsY0hAmbU/YhaSUz2iA2q1f16/7A6jLU='`,
-      "style-src 'self' 'unsafe-inline' https://cdnjs.loli.net https://cdnjs.cloudflare.com https://fonts.loli.net",
+      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-RlhVC6WGhVrcsY0hAmbU/YhaSUz2iA2q1f16/7A6jLU='`,
+      "style-src 'self' 'unsafe-inline' https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://fonts.loli.net",
       "img-src 'self' data: https://challenges.cloudflare.com",
-      "font-src 'self' https://cdnjs.loli.net https://cdnjs.cloudflare.com https://gstatic.loli.net",
-      "connect-src 'self' blob: data: https://cdnjs.loli.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+      "font-src 'self' https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://gstatic.loli.net",
+      "connect-src 'self' blob: data: https://cdnjs.webstatic.cn https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com",
       "frame-src 'self' https://challenges.cloudflare.com",
       "base-uri 'self'",
       "form-action 'self'"
