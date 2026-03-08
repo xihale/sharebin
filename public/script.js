@@ -1,15 +1,15 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const config = window.APP_CONFIG || { readOnly: false };
     const isReadOnly = config.readOnly;
-    
+
     // --- Prism Adapter for CodeMirror 5 ---
     if (typeof CodeMirror !== 'undefined' && typeof Prism !== 'undefined') {
-        CodeMirror.defineMode("prism", function(config, parserConfig) {
+        CodeMirror.defineMode("prism", function (config, parserConfig) {
             return {
-                startState: function() {
+                startState: function () {
                     return { tokens: [], index: 0 };
                 },
-                token: function(stream, state) {
+                token: function (stream, state) {
                     if (state.tokens.length === 0 || state.index >= state.tokens.length) {
                         if (stream.pos === 0) {
                             const line = stream.string;
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             };
         });
-        
+
         function flattenPrismTokens(tokens, typePrefix = '') {
             let res = [];
             for (let t of tokens) {
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (t.type === 'function') cmType = 'def';
                     else if (t.type === 'class-name') cmType = 'variable-2';
                     else if (t.type === 'builtin') cmType = 'builtin';
-                    
+
                     if (Array.isArray(t.content)) {
                         res = res.concat(flattenPrismTokens(t.content, cmType));
                     } else {
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function detectLanguage(fullCode) {
         if (!fullCode || typeof flourite === 'undefined') return null;
-        
+
         try {
             const result = flourite(fullCode, { shiki: true, noUnknown: true });
             if (result && result.language && result.language !== 'Unknown') {
@@ -103,6 +103,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     let detectTimer = null; // Module-scoped variable
 
     function setEditorMode(editor, lang) {
+        const editorPreviewBtn = document.getElementById('editor-preview-btn');
+        if (editorPreviewBtn) {
+            if (lang === 'markdown') {
+                editorPreviewBtn.style.display = 'flex';
+            } else {
+                editorPreviewBtn.style.display = 'none';
+                if (window.isEditorPreview && editorPreviewBtn.click) {
+                    editorPreviewBtn.click();
+                }
+            }
+        }
+
         if (!lang || lang === 'plaintext' || lang === 'null') {
             editor.setOption('mode', 'null');
             return;
@@ -227,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     isManualSelection = true;
                     const val = e.target.value.trim();
                     if (!val) isManualSelection = false;
-                    
+
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
                         const inputVal = val.toLowerCase();
@@ -243,20 +255,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             editor.on('change', () => {
                 const content = editor.getValue().trim();
-                
+
                 // URL Detection
-                if (!content) { 
-                    typeIndicator.classList.remove('visible'); 
-                    return; 
+                if (!content) {
+                    typeIndicator.classList.remove('visible');
+                    return;
                 }
-                
+
                 const isUrl = /^(http|https):\/\/[^ "]+$/.test(content);
                 if (isUrl) {
                     typeIndicator.textContent = 'Link Redirect';
                     typeIndicator.classList.add('visible');
                     return;
                 }
-                
+
                 typeIndicator.textContent = 'Code Snippet';
                 typeIndicator.classList.add('visible');
 
@@ -282,19 +294,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             function initTurnstile() {
                 if (!turnstileContainer) return;
-                
+
                 if (window.turnstile) {
                     if (turnstileWidgetId !== null) return;
                     turnstileWidgetId = turnstile.render('#turnstile-container', {
                         sitekey: window.APP_CONFIG.turnstileSiteKey || '',
-                        callback: async function(token) {
+                        callback: async function (token) {
                             if (isWaitingForCaptcha && captchaModal && captchaModal.classList.contains('visible')) {
                                 console.log('Captcha success, submitting...');
                                 isWaitingForCaptcha = false; // Reset flag
                                 submitSnippet(token);
                             }
                         },
-                        'error-callback': function() {
+                        'error-callback': function () {
                             console.error('Turnstile failed');
                             isWaitingForCaptcha = false;
                         }
@@ -303,7 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     setTimeout(initTurnstile, 100);
                 }
             }
-            
+
             initTurnstile();
 
             if (cancelCaptchaBtn) {
@@ -337,10 +349,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const res = await fetch('/api/create', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            content, 
-                            type: /^(http|https):\/\/[^ "]+$/.test(content.trim()) ? 'url' : 'code', 
-                            language: validateLanguage(langInput?.value) 
+                        body: JSON.stringify({
+                            content,
+                            type: /^(http|https):\/\/[^ "]+$/.test(content.trim()) ? 'url' : 'code',
+                            language: validateLanguage(langInput?.value)
                         })
                     });
 
@@ -465,6 +477,110 @@ document.addEventListener('DOMContentLoaded', async () => {
         createNewBtn.addEventListener('click', () => location.reload());
     }
 
+    // --- Editor Markdown Preview Logic ---
+    const editorPreviewBtn = document.getElementById('editor-preview-btn');
+    if (editorPreviewBtn) {
+        const editorWrapper = document.getElementById('editor-wrapper');
+        const editorControls = document.getElementById('editor-controls');
+        const editorPreviewBlock = document.getElementById('editor-markdown-preview');
+        window.isEditorPreview = false;
+
+        const updateEditorView = () => {
+            if (window.isEditorPreview) {
+                editorWrapper.style.display = 'none';
+                if (editorControls) editorControls.style.display = 'none';
+                editorPreviewBlock.style.display = 'block';
+                editorPreviewBtn.innerHTML = '<i class="fas fa-code"></i> Edit';
+
+                const rawContent = document.querySelector('.CodeMirror').CodeMirror.getValue();
+
+                if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                    try {
+                        const renderer = new marked.Renderer();
+                        renderer.code = (code, lang) => {
+                            const language = (lang || 'plaintext').toLowerCase();
+                            if (language === 'mermaid') {
+                                return `<div class="mermaid">${code}</div>`;
+                            }
+                            return `<div class="code-block-wrapper">
+                                        <button class="copy-snippet-btn"><i class="far fa-copy"></i></button>
+                                        <pre class="line-numbers language-${language}"><code class="language-${language}">${code}</code></pre>
+                                    </div>`;
+                        };
+
+                        editorPreviewBlock.innerHTML = DOMPurify.sanitize(marked.parse(rawContent, { renderer, breaks: true, gfm: true }));
+
+                        if (typeof Prism !== 'undefined') {
+                            Prism.highlightAllUnder(editorPreviewBlock);
+                        }
+
+                        if (typeof renderMathInElement !== 'undefined') {
+                            renderMathInElement(editorPreviewBlock, {
+                                delimiters: [
+                                    { left: '$$', right: '$$', display: true },
+                                    { left: '$', right: '$', display: false },
+                                    { left: '\\(', right: '\\)', display: false },
+                                    { left: '\\[', right: '\\]', display: true }
+                                ],
+                                throwOnError: false
+                            });
+                        }
+
+                        const renderMermaidEditor = () => {
+                            if (typeof window.mermaid !== 'undefined') {
+                                const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                window.mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default' });
+                                window.mermaid.run({
+                                    nodes: editorPreviewBlock.querySelectorAll('.mermaid')
+                                }).catch(e => console.error("Mermaid rendering error:", e));
+                            }
+                        };
+
+                        if (editorPreviewBlock.querySelector('.mermaid')) {
+                            if (typeof window.mermaid === 'undefined') {
+                                import('https://npm.webcache.cn/mermaid@10.9.1/dist/mermaid.esm.min.mjs').then(m => {
+                                    window.mermaid = m.default;
+                                    renderMermaidEditor();
+                                }).catch(e => console.error("Failed to load mermaid:", e));
+                            } else {
+                                renderMermaidEditor();
+                            }
+                        }
+
+                        editorPreviewBlock.querySelectorAll('.copy-snippet-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const codeText = btn.nextElementSibling.querySelector('code').innerText;
+                                navigator.clipboard.writeText(codeText).then(() => {
+                                    const toast = document.getElementById('toast');
+                                    if (toast) {
+                                        toast.innerHTML = '<i class="fas fa-code"></i> Code Copied!';
+                                        toast.classList.add('show');
+                                        setTimeout(() => toast.classList.remove('show'), 2000);
+                                    }
+                                });
+                            });
+                        });
+                    } catch (e) {
+                        editorPreviewBlock.innerHTML = '<p style="color:red">Error rendering markdown.</p>';
+                        console.error(e);
+                    }
+                } else {
+                    editorPreviewBlock.innerHTML = '<p>Rendering library not loaded.</p>';
+                }
+            } else {
+                editorWrapper.style.display = 'block';
+                if (editorControls) editorControls.style.display = 'flex';
+                editorPreviewBlock.style.display = 'none';
+                editorPreviewBtn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+            }
+        };
+
+        editorPreviewBtn.addEventListener('click', () => {
+            window.isEditorPreview = !window.isEditorPreview;
+            updateEditorView();
+        });
+    }
+
     // --- Markdown Preview Logic ---
     const previewBtn = document.getElementById('preview-btn');
     if (previewBtn) {
@@ -474,26 +590,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         let isPreview = previewBlock && previewBlock.style.display !== 'none';
 
         const renderMarkdown = () => {
-             if (previewBlock && !previewBlock.innerHTML) {
+            if (previewBlock && !previewBlock.innerHTML) {
                 const codeEl = document.querySelector('code');
                 if (codeEl) {
                     const rawContent = codeEl.innerText;
-                    
+
                     if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
                         try {
                             const renderer = new marked.Renderer();
                             renderer.code = (code, lang) => {
-                                const language = lang || 'plaintext';
+                                const language = (lang || 'plaintext').toLowerCase();
+                                if (language === 'mermaid') {
+                                    return `<div class="mermaid">${code}</div>`;
+                                }
                                 return `<div class="code-block-wrapper">
                                             <button class="copy-snippet-btn"><i class="far fa-copy"></i></button>
                                             <pre class="line-numbers language-${language}"><code class="language-${language}">${code}</code></pre>
                                         </div>`;
                             };
-                            
-                            previewBlock.innerHTML = DOMPurify.sanitize(marked.parse(rawContent, { renderer }));
-                            
+
+                            previewBlock.innerHTML = DOMPurify.sanitize(marked.parse(rawContent, { renderer, breaks: true, gfm: true }));
+
                             if (typeof Prism !== 'undefined') {
                                 Prism.highlightAllUnder(previewBlock);
+                            }
+
+                            if (typeof renderMathInElement !== 'undefined') {
+                                renderMathInElement(previewBlock, {
+                                    delimiters: [
+                                        { left: '$$', right: '$$', display: true },
+                                        { left: '$', right: '$', display: false },
+                                        { left: '\\(', right: '\\)', display: false },
+                                        { left: '\\[', right: '\\]', display: true }
+                                    ],
+                                    throwOnError: false
+                                });
+                            }
+
+                            const renderMermaidViewer = () => {
+                                if (typeof window.mermaid !== 'undefined') {
+                                    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                    window.mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default' });
+                                    window.mermaid.run({
+                                        nodes: previewBlock.querySelectorAll('.mermaid')
+                                    }).catch(e => console.error("Mermaid rendering error:", e));
+                                }
+                            };
+
+                            if (previewBlock.querySelector('.mermaid')) {
+                                if (typeof window.mermaid === 'undefined') {
+                                    import('https://npm.webcache.cn/mermaid@10.9.1/dist/mermaid.esm.min.mjs').then(m => {
+                                        window.mermaid = m.default;
+                                        renderMermaidViewer();
+                                    }).catch(e => console.error("Failed to load mermaid:", e));
+                                } else {
+                                    renderMermaidViewer();
+                                }
                             }
 
                             previewBlock.querySelectorAll('.copy-snippet-btn').forEach(btn => {
@@ -504,7 +656,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     });
                                 });
                             });
-                        } catch(e) {
+                        } catch (e) {
                             previewBlock.innerHTML = '<p style="color:red">Error rendering markdown.</p>';
                             console.error(e);
                         }

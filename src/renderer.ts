@@ -52,6 +52,11 @@ const ASSETS = {
         js: { url: `${CDN_BASE}/marked@12.0.1/lib/marked.umd.js`, integrity: SRI.markedJs },
         purify: { url: `${CDN_BASE}/dompurify@3.0.9/dist/purify.min.js`, integrity: SRI.dompurifyJs }
     },
+    katex: {
+        css: { url: `${CDN_BASE}/katex@0.16.11/dist/katex.min.css` },
+        js: { url: `${CDN_BASE}/katex@0.16.11/dist/katex.min.js` },
+        autoRender: { url: `${CDN_BASE}/katex@0.16.11/dist/contrib/auto-render.min.js` }
+    },
     flourite: { url: `${CDN_BASE}/flourite@1.3.0/dist/index.iife.js` },
     turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js"
 };
@@ -82,6 +87,7 @@ function renderStyles(nonce: string) {
         { url: ASSETS.prism.cssDark.url, integrity: ASSETS.prism.cssDark.integrity, media: "(prefers-color-scheme: dark)" },
         { url: ASSETS.prism.cssLineNumbers.url, integrity: ASSETS.prism.cssLineNumbers.integrity },
         { url: ASSETS.markdown.css.url, integrity: ASSETS.markdown.css.integrity },
+        { url: ASSETS.katex.css.url },
     ];
 
     const links = cssAssets.map(asset => {
@@ -157,6 +163,8 @@ function renderScripts(readOnly: boolean, safeLanguageJson: string, turnstileSit
         { url: ASSETS.prism.lineNumbers.url, integrity: ASSETS.prism.lineNumbers.integrity },
         { url: ASSETS.markdown.js.url, integrity: ASSETS.markdown.js.integrity },
         { url: ASSETS.markdown.purify.url, integrity: ASSETS.markdown.purify.integrity },
+        { url: ASSETS.katex.js.url },
+        { url: ASSETS.katex.autoRender.url },
         { url: ASSETS.flourite.url },
         { url: ASSETS.codemirror.js.url, integrity: ASSETS.codemirror.js.integrity },
         ...ASSETS.codemirror.addons
@@ -166,7 +174,7 @@ function renderScripts(readOnly: boolean, safeLanguageJson: string, turnstileSit
         const integrityAttr = asset.integrity ? ` integrity="${asset.integrity}" crossorigin="anonymous" referrerpolicy="no-referrer-when-downgrade"` : '';
         return `<script src="${asset.url}"${integrityAttr} nonce="${nonce}"></script>`;
     }).join('\n    ');
-    
+
     return `
     <!-- Libraries -->
     ${scripts}
@@ -241,10 +249,10 @@ export function renderError(message: string, nonce: string = '') {
 }
 
 export function renderPage(
-    content: string | null = null, 
-    readOnly: boolean = false, 
-    language: string = 'plaintext', 
-    nonce: string = '', 
+    content: string | null = null,
+    readOnly: boolean = false,
+    language: string = 'plaintext',
+    nonce: string = '',
     turnstileSiteKey: string = '',
     expirationDate: string | null = null
 ) {
@@ -252,28 +260,31 @@ export function renderPage(
     const safeLanguageJson = safeLanguage.replace(/"/g, '\\\\"');
 
     const headerContent = readOnly ?
-        `<span><i class="far fa-clock"></i> Expires in ${expirationDate || '7 d'}</span>` :
+        `<div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="viewer-controls" style="display:flex; gap:0.5rem;">
+                ${safeLanguage === 'markdown' ? `<button id="preview-btn" class="copy-code-btn" style="position:static; margin:0;"><i class="fas fa-code"></i> Source</button>` : ''}
+                <button id="copy-code-btn" class="copy-code-btn" style="position:static; margin:0;"><i class="far fa-copy"></i> Copy</button>
+            </div>
+            <span><i class="far fa-clock"></i> Expires in ${expirationDate || '7 d'}</span>
+         </div>` :
         `<div class="lang-select-wrapper">
            <input type="text" id="language-input" class="lang-input" list="language-list" autocomplete="off">
            <datalist id="language-list"></datalist>
            <i class="fas fa-search input-icon"></i>
          </div>
          <span class="divider">|</span>
-         <span><i class="fas fa-bolt"></i> Auto-detect</span>`;
+         <button id="editor-preview-btn" class="copy-code-btn" style="position:static; margin:0; display:none;"><i class="fas fa-eye"></i> Preview</button>`;
 
     const mainContent = readOnly ?
         `<div id="viewer-container">
-            <div class="viewer-controls" style="position:absolute; top:1rem; right:1rem; z-index:50; display:flex; gap:0.5rem;">
-                ${safeLanguage === 'markdown' ? `<button id="preview-btn" class="copy-code-btn" style="position:static;"><i class="fas fa-code"></i> Source</button>` : ''}
-                <button id="copy-code-btn" class="copy-code-btn" style="position:static;"><i class="far fa-copy"></i> Copy</button>
-            </div>
             <pre class="line-numbers" style="${safeLanguage === 'markdown' ? 'display:none;' : ''}"><code class="language-${safeLanguage}">${escapeHtml(content || '')}</code></pre>
             <div id="markdown-preview" class="markdown-body" style="${safeLanguage === 'markdown' ? 'display:block;' : 'display:none;'}"></div>
          </div>` :
         `<div id="editor-wrapper">
            <div id="editor-container"></div>
          </div>
-         <div class="controls">
+         <div id="editor-markdown-preview" class="markdown-body" style="display:none; flex:1; width:100%; overflow:auto;"></div>
+         <div class="controls" id="editor-controls">
            <div id="type-indicator" class="status-indicator">Code Snippet</div>
            <button id="save-btn" class="btn">Share <i class="fas fa-paper-plane" style="margin-left:8px"></i></button>
          </div>

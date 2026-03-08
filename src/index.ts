@@ -137,10 +137,9 @@ app.use('*', async (c, next) => {
     c.header('X-Frame-Options', 'DENY')
     c.header('Referrer-Policy', 'no-referrer-when-downgrade')
     
-    // Explicitly set CSP with 'self' and correct format
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://npm.webcache.cn https://over.alnk.cn https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-RlhVC6WGhVrcsY0hAmbU/YhaSUz2iA2q1f16/7A6jLU='`,
+      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://npm.webcache.cn https://over.alnk.cn https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
       "style-src 'self' 'unsafe-inline' https://npm.webcache.cn https://over.alnk.cn https://fonts.googleapis.com",
       "img-src 'self' data: https://challenges.cloudflare.com",
       "font-src 'self' https://npm.webcache.cn https://over.alnk.cn https://fonts.gstatic.com",
