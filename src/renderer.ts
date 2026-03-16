@@ -3,7 +3,7 @@ import { ALLOWED_LANGUAGES } from './languages'
 // --- Configuration ---
 
 const CDN_BASE = "https://npm.webcache.cn";
-const FONTS_BASE = "https://fonts.googleapis.com/css2";
+const FONTS_BASE = "https://fonts.loli.net/css2";
 
 const SRI = {
     fontAwesome: "sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=",
@@ -58,6 +58,7 @@ const ASSETS = {
         autoRender: { url: `${CDN_BASE}/katex@0.16.11/dist/contrib/auto-render.min.js` }
     },
     flourite: { url: `${CDN_BASE}/flourite@1.3.0/dist/index.iife.js` },
+    html2canvas: { url: `${CDN_BASE}/html2canvas@1.4.1/dist/html2canvas.min.js` },
     turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js"
 };
 
@@ -264,6 +265,7 @@ export function renderPage(
             <div class="viewer-controls" style="display:flex; gap:0.5rem;">
                 ${safeLanguage === 'markdown' ? `<button id="preview-btn" class="copy-code-btn" style="position:static; margin:0;"><i class="fas fa-code"></i> Source</button>` : ''}
                 <button id="copy-code-btn" class="copy-code-btn" style="position:static; margin:0;"><i class="far fa-copy"></i> Copy</button>
+                <button id="export-image-btn" class="copy-code-btn" style="position:static; margin:0;"><i class="fas fa-image"></i> Export</button>
             </div>
             <span><i class="far fa-clock"></i> Expires in ${expirationDate || '7 d'}</span>
          </div>` :
@@ -286,7 +288,10 @@ export function renderPage(
          <div id="editor-markdown-preview" class="markdown-body" style="display:none; flex:1; width:100%; overflow:auto;"></div>
          <div class="controls" id="editor-controls">
            <div id="type-indicator" class="status-indicator">Code Snippet</div>
-           <button id="save-btn" class="btn">Share <i class="fas fa-paper-plane" style="margin-left:8px"></i></button>
+           <div style="display: flex; gap: 0.8rem; align-items: center;">
+               <button id="editor-export-btn" class="btn">Export <i class="fas fa-image" style="margin-left:8px"></i></button>
+               <button id="save-btn" class="btn">Share <i class="fas fa-paper-plane" style="margin-left:8px"></i></button>
+           </div>
          </div>
          <div id="captcha-modal" class="modal-overlay">
              <div class="modal-box">

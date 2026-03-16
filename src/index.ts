@@ -4,15 +4,15 @@ import { renderPage, renderError } from './renderer'
 import { ALLOWED_LANGUAGES } from './languages'
 
 type Bindings = {
-  DB: D1Database
-  LIMITER: KVNamespace
-  TURNSTILE_SECRET_KEY?: string
-  TURNSTILE_SITE_KEY?: string
-  COOKIE_SECRET?: string
+    DB: D1Database
+    LIMITER: KVNamespace
+    TURNSTILE_SECRET_KEY?: string
+    TURNSTILE_SITE_KEY?: string
+    COOKIE_SECRET?: string
 }
 
 type Variables = {
-  nonce: string
+    nonce: string
 }
 
 const VERIFIED_COOKIE_NAME = 'sb_verified'
@@ -21,26 +21,26 @@ const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA';
 const TURNSTILE_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 function getTurnstileConfig(c: any) {
-  const url = new URL(c.req.url);
-  const isProd = url.hostname === 'share.xihale.top';
-  const useTestKey = !isProd;
-  
-  const config = {
-    siteKey: useTestKey ? TURNSTILE_TEST_SITE_KEY : c.env.TURNSTILE_SITE_KEY,
-    secretKey: useTestKey ? TURNSTILE_TEST_SECRET_KEY : c.env.TURNSTILE_SECRET_KEY
-  };
+    const url = new URL(c.req.url);
+    const isProd = url.hostname === 'share.xihale.top';
+    const useTestKey = !isProd;
 
-  if (useTestKey) {
-    console.log(`[Dev] Using Turnstile Test Keys for hostname: ${url.hostname}`);
-  }
-  
-  return config;
+    const config = {
+        siteKey: useTestKey ? TURNSTILE_TEST_SITE_KEY : c.env.TURNSTILE_SITE_KEY,
+        secretKey: useTestKey ? TURNSTILE_TEST_SECRET_KEY : c.env.TURNSTILE_SECRET_KEY
+    };
+
+    if (useTestKey) {
+        console.log(`[Dev] Using Turnstile Test Keys for hostname: ${url.hostname}`);
+    }
+
+    return config;
 }
 
 async function checkRateLimit(c: any, ip: string): Promise<boolean> {
     if (!c.env.LIMITER) {
-      console.warn('Rate Limiter binding (LIMITER) not found. Skipping rate check.')
-      return true
+        console.warn('Rate Limiter binding (LIMITER) not found. Skipping rate check.')
+        return true
     }
     const minKey = `rl:min:${ip}`
     const hrKey = `rl:hr:${ip}`
@@ -62,23 +62,23 @@ async function checkRateLimit(c: any, ip: string): Promise<boolean> {
         c.env.LIMITER.put(minKey, (minCount + 1).toString(), { expirationTtl: 60 }),
         c.env.LIMITER.put(hrKey, (hrCount + 1).toString(), { expirationTtl: 3600 })
     ])
-    
+
     return true
 }
 
 type CreateRequest = {
-  content: string
-  type: 'code' | 'url'
-  language?: string
-  'cf-turnstile-response'?: string
+    content: string
+    type: 'code' | 'url'
+    language?: string
+    'cf-turnstile-response'?: string
 }
 
 type ShareData = {
-  id: string
-  type: 'code' | 'url'
-  content: string
-  language?: string
-  created_at: number
+    id: string
+    type: 'code' | 'url'
+    content: string
+    language?: string
+    created_at: number
 }
 
 const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
@@ -118,17 +118,17 @@ function validateLanguage(lang: string | undefined): string {
 
 // Global Error Handler to catch 500s
 app.onError((err, c) => {
-  console.error('Global Error:', err)
-  return c.json({ 
-    error: 'Internal Server Error'
-  }, 500)
+    console.error('Global Error:', err)
+    return c.json({
+        error: 'Internal Server Error'
+    }, 500)
 })
 
 app.use('*', async (c, next) => {
     // Safer hex nonce generation
     const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
     c.set('nonce', nonce)
 
     await next()
@@ -136,25 +136,25 @@ app.use('*', async (c, next) => {
     c.header('X-Content-Type-Options', 'nosniff')
     c.header('X-Frame-Options', 'DENY')
     c.header('Referrer-Policy', 'no-referrer-when-downgrade')
-    
+
     const csp = [
-      "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://npm.webcache.cn https://over.alnk.cn https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
-      "style-src 'self' 'unsafe-inline' https://npm.webcache.cn https://over.alnk.cn https://fonts.googleapis.com",
-      "img-src 'self' data: https://challenges.cloudflare.com",
-      "font-src 'self' https://npm.webcache.cn https://over.alnk.cn https://fonts.gstatic.com",
-      "connect-src 'self' blob: data: https://npm.webcache.cn https://over.alnk.cn https://static.cloudflareinsights.com https://challenges.cloudflare.com",
-      "frame-src 'self' https://challenges.cloudflare.com",
-      "base-uri 'self'",
-      "form-action 'self'"
+        "default-src 'self'",
+        `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-eval' https://npm.webcache.cn https://over.alnk.cn https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
+        "style-src 'self' 'unsafe-inline' https://npm.webcache.cn https://over.alnk.cn https://fonts.loli.net",
+        "img-src 'self' data: https://challenges.cloudflare.com",
+        "font-src 'self' https://npm.webcache.cn https://over.alnk.cn https://gstatic.loli.net",
+        "connect-src 'self' blob: data: https://npm.webcache.cn https://over.alnk.cn https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+        "frame-src 'self' https://challenges.cloudflare.com",
+        "base-uri 'self'",
+        "form-action 'self'"
     ].join('; ')
     c.header('Content-Security-Policy', csp)
 })
 
 app.get('/', (c) => {
-  const nonce = c.get('nonce')
-  const { siteKey } = getTurnstileConfig(c);
-  return c.html(renderPage(null, false, 'plaintext', nonce, siteKey))
+    const nonce = c.get('nonce')
+    const { siteKey } = getTurnstileConfig(c);
+    return c.html(renderPage(null, false, 'plaintext', nonce, siteKey))
 })
 
 app.post('/api/create', async (c) => {
@@ -169,7 +169,7 @@ app.post('/api/create', async (c) => {
     }
 
     const { content, type, language, 'cf-turnstile-response': turnstileToken } = body
-    
+
     // Strict type validation
     const validTypes = ['code', 'url']
     const finalType = validTypes.includes(type) ? type : 'code'
@@ -179,7 +179,7 @@ app.post('/api/create', async (c) => {
         throw new Error('Security Error: COOKIE_SECRET environment variable is missing.')
     }
     const verifiedCookie = await getSignedCookie(c, cookieSecret, VERIFIED_COOKIE_NAME)
-    
+
     const { secretKey } = getTurnstileConfig(c);
     let isVerified = verifiedCookie === 'true'
     if (!isVerified && turnstileToken) {
@@ -209,7 +209,7 @@ app.post('/api/create', async (c) => {
                 finalId = candidate
                 break
             } catch (e: any) {
-                if (e.message && e.message.includes('UNIQUE constraint failed')) continue 
+                if (e.message && e.message.includes('UNIQUE constraint failed')) continue
                 throw e
             }
         }
@@ -221,39 +221,39 @@ app.post('/api/create', async (c) => {
 })
 
 app.get('/:id', async (c) => {
-  const nonce = c.get('nonce')
-  const id = c.req.param('id')
-  if (id.length > 10) return c.html(renderError('Not Found', nonce), 404)
+    const nonce = c.get('nonce')
+    const id = c.req.param('id')
+    if (id.length > 10) return c.html(renderError('Not Found', nonce), 404)
 
-  const data = await c.env.DB.prepare('SELECT * FROM pastes WHERE id = ?').bind(id).first<ShareData>()
-  if (!data) return c.html(renderError('Not Found', nonce), 404)
+    const data = await c.env.DB.prepare('SELECT * FROM pastes WHERE id = ?').bind(id).first<ShareData>()
+    if (!data) return c.html(renderError('Not Found', nonce), 404)
 
-  if (Date.now() - data.created_at > CONFIG.EXPIRATION_TTL) {
-      c.executionCtx.waitUntil(c.env.DB.prepare('DELETE FROM pastes WHERE id = ?').bind(id).run())
-      return c.html(renderError('Link Expired', nonce), 404)
-  }
+    if (Date.now() - data.created_at > CONFIG.EXPIRATION_TTL) {
+        c.executionCtx.waitUntil(c.env.DB.prepare('DELETE FROM pastes WHERE id = ?').bind(id).run())
+        return c.html(renderError('Link Expired', nonce), 404)
+    }
 
-  if (data.type === 'url') {
-      // Security: Only redirect to http/https to prevent javascript: or ws: XSS/SSRF risks
-      const ALLOWED_PROTOCOLS = ['http:', 'https:'];
-      try {
-          const url = new URL(data.content);
-          if (ALLOWED_PROTOCOLS.includes(url.protocol)) {
-              return c.redirect(data.content);
-          }
-      } catch (e) {
-          // If URL is invalid, fall through to error
-      }
-      return c.html(renderError('Invalid or insecure URL', nonce), 400);
-  }
-  
-  const diff = data.created_at + CONFIG.EXPIRATION_TTL - Date.now();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const expirationText = `${days} d ${hours} h`;
+    if (data.type === 'url') {
+        // Security: Only redirect to http/https to prevent javascript: or ws: XSS/SSRF risks
+        const ALLOWED_PROTOCOLS = ['http:', 'https:'];
+        try {
+            const url = new URL(data.content);
+            if (ALLOWED_PROTOCOLS.includes(url.protocol)) {
+                return c.redirect(data.content);
+            }
+        } catch (e) {
+            // If URL is invalid, fall through to error
+        }
+        return c.html(renderError('Invalid or insecure URL', nonce), 400);
+    }
 
-  const { siteKey } = getTurnstileConfig(c);
-  return c.html(renderPage(data.content, true, data.language, nonce, siteKey, expirationText))
+    const diff = data.created_at + CONFIG.EXPIRATION_TTL - Date.now();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const expirationText = `${days} d ${hours} h`;
+
+    const { siteKey } = getTurnstileConfig(c);
+    return c.html(renderPage(data.content, true, data.language, nonce, siteKey, expirationText))
 })
 
 

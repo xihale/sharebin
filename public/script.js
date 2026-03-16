@@ -459,6 +459,240 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // --- Export to Image Logic ---
+    function loadHtml2Canvas() {
+        return new Promise((resolve, reject) => {
+            if (typeof html2canvas !== 'undefined') { resolve(html2canvas); return; }
+            const script = document.createElement('script');
+            // strictly domestic CDN fully compliant with CSP & user rules
+            script.src = 'https://npm.webcache.cn/html2canvas@1.4.1/dist/html2canvas.min.js';
+            script.onload = () => resolve(html2canvas);
+            script.onerror = () => reject(new Error('Failed to load html2canvas'));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function exportCodeToImage({ codeContent, language, exportBtn }) {
+        exportBtn.disabled = true;
+        const oHtml = exportBtn.innerHTML;
+        exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+
+        try {
+            await loadHtml2Canvas();
+
+            // Create temporary structure off-screen for syntax highlighting
+            const tempDiv = document.createElement('div');
+            tempDiv.className = 'markdown-body'; // Just a wrapper
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.top = '-99999px';
+            tempDiv.style.left = '-99999px';
+
+            const preEl = document.createElement('pre');
+            preEl.className = 'language-' + language;
+
+            const codeEl = document.createElement('code');
+            codeEl.className = 'language-' + language;
+            codeEl.textContent = codeContent;
+
+            preEl.appendChild(codeEl);
+            tempDiv.appendChild(preEl);
+            document.body.appendChild(tempDiv);
+
+            // Highlight code with Prism if available
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightElement(codeEl);
+            }
+
+            // Measure natural text width (no wrapping)
+            const measurer = document.createElement('div');
+            Object.assign(measurer.style, {
+                position: 'fixed', top: '-99999px', left: '-99999px',
+                whiteSpace: 'pre', width: 'max-content', maxWidth: 'none',
+                visibility: 'hidden',
+                fontFamily: getComputedStyle(codeEl).fontFamily,
+                fontSize: getComputedStyle(codeEl).fontSize,
+                lineHeight: getComputedStyle(codeEl).lineHeight
+            });
+            measurer.textContent = codeContent;
+            document.body.appendChild(measurer);
+            const naturalWidth = measurer.scrollWidth;
+            document.body.removeChild(measurer);
+
+            const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            // Align with site theme colors (lighter/cleaner than previous hardcoded values)
+            const bgColor = isDark ? '#292d3e' : '#ffffff';
+            const gutterColor = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
+            const dividerColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+            // Compute gutter width based on digit count
+            const lineCount = codeContent.split('\n').length;
+            const digits = String(lineCount).length;
+            const gutterWidth = Math.max(digits * 8 + 12, 32);
+            const exportPadding = 24;
+            const exportWidth = Math.max(naturalWidth + gutterWidth, 480);
+            const totalWidth = exportWidth + exportPadding * 2;
+
+            // Split highlighted HTML into per-line segments
+            const highlightedHtml = codeEl.innerHTML;
+            const rawLines = highlightedHtml.split('\n');
+            if (rawLines[rawLines.length - 1] === '') rawLines.pop();
+
+            const codeFontFamily = getComputedStyle(codeEl).fontFamily;
+            const codeFontSize = getComputedStyle(codeEl).fontSize;
+            const codeLineHeight = getComputedStyle(codeEl).lineHeight;
+            const codeForeground = getComputedStyle(codeEl).color;
+
+            // Outer wrapper — clean solid background, rounded corners
+            const wrapper = document.createElement('div');
+            Object.assign(wrapper.style, {
+                position: 'fixed', top: '-99999px', left: '-99999px',
+                width: totalWidth + 'px', minWidth: totalWidth + 'px',
+                padding: exportPadding + 'px',
+                margin: '0', boxSizing: 'border-box',
+                background: bgColor,
+                borderRadius: '12px',
+                fontFamily: codeFontFamily,
+                fontSize: codeFontSize,
+                lineHeight: codeLineHeight,
+            });
+
+            // Code block container — no extra background, just structure
+            const clonedPre = document.createElement('pre');
+            Object.assign(clonedPre.style, {
+                margin: '0', padding: '0',
+                background: 'transparent',
+                border: 'none', borderRadius: '0',
+                width: '100%',
+                boxSizing: 'border-box',
+                overflow: 'visible',
+                fontFamily: codeFontFamily,
+                fontSize: codeFontSize,
+                lineHeight: codeLineHeight,
+            });
+
+            rawLines.forEach((lineHtml, idx) => {
+                const row = document.createElement('div');
+                Object.assign(row.style, {
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    minHeight: codeLineHeight,
+                    width: '100%',
+                });
+
+                // Gutter — transparent bg, thin right divider
+                const gutter = document.createElement('span');
+                Object.assign(gutter.style, {
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    minWidth: gutterWidth + 'px',
+                    width: gutterWidth + 'px',
+                    paddingRight: '10px',
+                    paddingLeft: '0',
+                    boxSizing: 'border-box',
+                    userSelect: 'none',
+                    flexShrink: '0',
+                    color: gutterColor,
+                    borderRight: '1px solid ' + dividerColor,
+                    fontFamily: codeFontFamily,
+                    fontSize: codeFontSize,
+                    lineHeight: codeLineHeight,
+                });
+                gutter.textContent = String(idx + 1);
+
+                // Code line
+                const lineSpan = document.createElement('code');
+                Object.assign(lineSpan.style, {
+                    display: 'block',
+                    whiteSpace: 'pre',
+                    paddingLeft: '12px',
+                    paddingRight: '0',
+                    flex: '1',
+                    fontFamily: codeFontFamily,
+                    fontSize: codeFontSize,
+                    lineHeight: codeLineHeight,
+                    color: codeForeground,
+                    background: 'transparent',
+                    minHeight: codeLineHeight,
+                });
+                lineSpan.innerHTML = lineHtml || '&#8203;';
+
+                row.appendChild(gutter);
+                row.appendChild(lineSpan);
+                clonedPre.appendChild(row);
+            });
+
+            wrapper.appendChild(clonedPre);
+            document.body.appendChild(wrapper);
+
+            const scale = Math.max(window.devicePixelRatio || 1, 2);
+            const canvas = await html2canvas(wrapper, {
+                scale, useCORS: true, allowTaint: true,
+                backgroundColor: bgColor,
+                width: totalWidth, windowWidth: totalWidth + 200
+            });
+
+            // Cleanup
+            document.body.removeChild(wrapper);
+            document.body.removeChild(tempDiv);
+
+            const link = document.createElement('a');
+            link.download = 'sharebin-code.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            showToast('<i class="fas fa-image"></i> Image exported!');
+        } catch (e) {
+            console.error('Export failed:', e);
+            showToast('Export failed: ' + e.message, true);
+        } finally {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = oHtml;
+        }
+    }
+
+    // Read-only View Export
+    const exportImageBtn = document.getElementById('export-image-btn');
+    if (exportImageBtn) {
+        exportImageBtn.addEventListener('click', () => {
+            const codeEl = document.querySelector('#viewer-container code');
+            if (!codeEl) { showToast('Nothing to export', true); return; }
+
+            const classes = codeEl.className.split(' ');
+            const langClass = classes.find(c => c.startsWith('language-')) || 'language-plaintext';
+            const language = langClass.replace('language-', '');
+
+            exportCodeToImage({
+                codeContent: codeEl.innerText,
+                language: language,
+                exportBtn: exportImageBtn
+            });
+        });
+    }
+
+    // Edit View Export
+    const editorExportBtn = document.getElementById('editor-export-btn');
+    if (editorExportBtn) {
+        editorExportBtn.addEventListener('click', () => {
+            const editorWrapper = document.getElementById('editor-container');
+            if (!editorWrapper) return;
+            const editor = editorWrapper.querySelector('.CodeMirror')?.CodeMirror;
+            if (!editor) return;
+
+            const codeContent = editor.getValue();
+            if (!codeContent.trim()) { showToast('Nothing to export', true); return; }
+
+            const langInput = document.getElementById('language-input');
+            const language = langInput ? langInput.value.trim() || 'plaintext' : 'plaintext';
+
+            exportCodeToImage({
+                codeContent: codeContent,
+                language: language,
+                exportBtn: editorExportBtn
+            });
+        });
+    }
+
     const copyLinkBtn = document.getElementById('copy-link-btn');
     if (copyLinkBtn) {
         copyLinkBtn.addEventListener('click', () => {
