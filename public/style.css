@@ -191,6 +191,7 @@ main {
   line-height: 1.6;
   background: transparent;
   color: var(--fg);
+  height: 100%;
 }
 
 .CodeMirror-gutters {

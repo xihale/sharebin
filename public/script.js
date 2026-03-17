@@ -205,7 +205,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 autoCloseBrackets: true,
                 lineWrapping: true,
                 autofocus: true,
-                viewportMargin: Infinity
+                viewportMargin: Infinity,
+                indentUnit: 4,
+                tabSize: 4
             });
 
             // Listen for theme changes
@@ -228,7 +230,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Keyboard Shortcuts
             editor.setOption('extraKeys', {
                 'Ctrl-Enter': () => saveBtn?.click(),
-                'Cmd-Enter': () => saveBtn?.click()
+                'Cmd-Enter': () => saveBtn?.click(),
+                'Tab': (cm) => {
+                    if (cm.somethingSelected()) {
+                        cm.indentSelection('add');
+                    } else {
+                        cm.replaceSelection(cm.getOption('indentWithTabs') ? '\t' : 
+                            Array(cm.getOption('indentUnit') + 1).join(' '), 'end', '+input');
+                    }
+                },
+                'Shift-Tab': (cm) => cm.indentSelection('subtract')
             });
 
             loadPrismLanguages(dataList);
