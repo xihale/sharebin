@@ -445,15 +445,15 @@ pre[class*="language-"].line-numbers code,
 /* Toast */
 .toast {
   position: fixed;
-  top: 80px;
-  right: 2rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% - 10px)); /* offset for slide-in animation */
   background: #1e1e1e;
   color: #ffffff;
   padding: 0.8rem 1.2rem;
   border-radius: 8px;
   font-size: 0.9rem;
   opacity: 0;
-  transform: translateY(-10px);
   transition: all 0.3s ease;
   pointer-events: none;
   z-index: 1000;
@@ -470,7 +470,7 @@ pre[class*="language-"].line-numbers code,
 
 .toast.show {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, -50%);
 }
 
 /* Overlay for result */
@@ -649,22 +649,5 @@ pre[class*="language-"].line-numbers code,
 
   .CodeMirror-linenumber {
     padding-left: 0.2rem !important;
-  }
-
-  /* Toast Centering */
-  .toast {
-    top: auto;
-    bottom: 2rem;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    width: auto;
-    white-space: nowrap;
-    background: #1e1e1e;
-    color: #ffffff;
-  }
-
-  .toast.show {
-    transform: translateX(-50%) translateY(0);
   }
 }
