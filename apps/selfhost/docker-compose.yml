@@ -1,6 +1,10 @@
 # Run from monorepo root:
 #   docker compose -f apps/selfhost/docker-compose.yml --env-file apps/selfhost/.env up -d --build
 # Or from this directory with COMPOSE_FILE / context overrides.
+#
+# Project name must stay "sharebin" so existing containers/volumes
+# (sharebin_pgdata) are reused after monorepo path layout change.
+name: sharebin
 
 services:
   app:
