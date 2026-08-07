@@ -7,11 +7,13 @@
 FROM oven/bun:1 AS build
 WORKDIR /app
 
-# Workspace manifests first (better layer cache)
+# Workspace manifests first (better layer cache).
+# All workspace package.json must be present or frozen lockfile drifts.
 COPY package.json bun.lock ./
 COPY packages/frontend/package.json packages/frontend/
 COPY packages/shared/package.json packages/shared/
 COPY apps/selfhost/package.json apps/selfhost/
+COPY apps/cloud/package.json apps/cloud/
 
 RUN bun install --frozen-lockfile
 
@@ -27,8 +29,10 @@ FROM oven/bun:1 AS runtime
 WORKDIR /app
 
 COPY package.json bun.lock ./
+COPY packages/frontend/package.json packages/frontend/
 COPY packages/shared/package.json packages/shared/
 COPY apps/selfhost/package.json apps/selfhost/
+COPY apps/cloud/package.json apps/cloud/
 
 RUN bun install --frozen-lockfile --production
 
