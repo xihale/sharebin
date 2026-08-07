@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1f2228" media="(prefers-color-scheme: dark)">
+    <title>ShareBin</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link href="https://fonts.loli.net/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        .icon { display: inline-block; width: 1em; height: 1em; vertical-align: -0.125em; }
+        body { margin: 0; background-color: var(--bg, #ffffff); color: var(--fg, #111827); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+        header { padding: 0 24px; border-bottom: 1px solid var(--border-subtle, rgba(17,24,39,0.12)); background-color: var(--bg, #ffffff); display: flex; justify-content: space-between; align-items: center; height: 64px; }
+        .brand { font-family: 'Geist Mono', monospace; font-size: 14px; letter-spacing: 1.4px; text-transform: uppercase; text-decoration: none; color: var(--fg, #111827); display: flex; align-items: center; gap: 8px; }
+        main { flex: 1; display: flex; flex-direction: column; background-color: var(--bg, #ffffff); }
+        /* View states */
+        #editor-view, #viewer-view, #error-view { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .state-hidden, #editor-view.state-hidden, #viewer-view.state-hidden, #error-view.state-hidden, #loading-indicator.state-hidden { visibility: hidden; opacity: 0; pointer-events: none; }
+        .state-visible, #editor-view.state-visible, #viewer-view.state-visible, #error-view.state-visible, #loading-indicator.state-visible { visibility: visible; opacity: 1; pointer-events: auto; }
+        #loading-indicator.state-visible { display: flex; align-items: center; justify-content: center; position: absolute; inset: 0; color: var(--text-tertiary, rgba(17,24,39,0.5)); }
+        @media (prefers-color-scheme: dark) {
+            body { background-color: var(--bg, #1f2228); color: var(--fg, #ffffff); }
+            header { border-bottom-color: var(--border-subtle, rgba(255,255,255,0.15)); background-color: var(--bg, #1f2228); }
+            .brand { color: var(--fg, #ffffff); }
+            main { background-color: var(--bg, #1f2228); }
+            #loading-indicator.state-visible { color: var(--text-tertiary, rgba(255,255,255,0.5)); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="brand"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> ShareBin</a>
+        <div class="meta" id="header-meta"></div>
+    </header>
+    <main style="background-color: var(--bg, #ffffff);">
+        <div id="loading-indicator" class="state-visible">Loading...</div>
+
+        <!-- Viewer view (read mode) -->
+        <div id="viewer-view" class="state-hidden">
+            <div id="viewer-container" class="paste-surface">
+                <pre class="shiki-static" id="viewer-code-pre"></pre>
+                <div id="markdown-preview" class="markdown-body state-hidden"></div>
+            </div>
+        </div>
+
+        <!-- Error view -->
+        <div id="error-view" class="state-hidden" style="max-width: 400px; margin: 0 auto; text-align: center; padding: 2rem;">
+            <svg class="icon" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 1.5rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            <h2 style="margin: 0 0 1rem; font-weight: 600;">Something went wrong</h2>
+            <p id="error-message" style="color: var(--fg); opacity: 0.7; margin-bottom: 2rem; line-height: 1.6;"></p>
+            <a href="/" class="btn" style="text-decoration: none;">
+                <svg class="icon" style="margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Go Home
+            </a>
+        </div>
+    </main>
+
+    <!-- Viewer Entry Point -->
+    <script type="module" src="/src/main-viewer.ts"></script>
+</body>
+</html>

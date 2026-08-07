@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1f2228" media="(prefers-color-scheme: dark)">
+    <title>ShareBin</title>
+
+    <!-- Fonts: Geist Mono & Inter -->
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link href="https://fonts.loli.net/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+    <!-- Import map: CodeMirror/Lezer packages loaded from webcache CDN -->
+    <script type="importmap">{"imports":{"codemirror":"https://npm.webcache.cn/codemirror@6.0.2/dist/index.js","@codemirror/autocomplete":"https://npm.webcache.cn/@codemirror/autocomplete@6.20.1/dist/index.js","@codemirror/commands":"https://npm.webcache.cn/@codemirror/commands@6.10.3/dist/index.js","@codemirror/language":"https://npm.webcache.cn/@codemirror/language@6.12.3/dist/index.js","@codemirror/search":"https://npm.webcache.cn/@codemirror/search@6.7.0/dist/index.js","@codemirror/lint":"https://npm.webcache.cn/@codemirror/lint@6.9.5/dist/index.js","@codemirror/state":"https://npm.webcache.cn/@codemirror/state@6.6.0/dist/index.js","@codemirror/view":"https://npm.webcache.cn/@codemirror/view@6.41.1/dist/index.js","@codemirror/lang-cpp":"https://npm.webcache.cn/@codemirror/lang-cpp@6.0.3/dist/index.js","@codemirror/lang-css":"https://npm.webcache.cn/@codemirror/lang-css@6.3.1/dist/index.js","@codemirror/lang-go":"https://npm.webcache.cn/@codemirror/lang-go@6.0.1/dist/index.js","@codemirror/lang-html":"https://npm.webcache.cn/@codemirror/lang-html@6.4.11/dist/index.js","@codemirror/lang-java":"https://npm.webcache.cn/@codemirror/lang-java@6.0.2/dist/index.js","@codemirror/lang-javascript":"https://npm.webcache.cn/@codemirror/lang-javascript@6.2.5/dist/index.js","@codemirror/lang-jinja":"https://npm.webcache.cn/@codemirror/lang-jinja@6.0.1/dist/index.js","@codemirror/lang-json":"https://npm.webcache.cn/@codemirror/lang-json@6.0.2/dist/index.js","@codemirror/lang-less":"https://npm.webcache.cn/@codemirror/lang-less@6.0.2/dist/index.js","@codemirror/lang-liquid":"https://npm.webcache.cn/@codemirror/lang-liquid@6.3.2/dist/index.js","@codemirror/lang-markdown":"https://npm.webcache.cn/@codemirror/lang-markdown@6.5.0/dist/index.js","@codemirror/lang-php":"https://npm.webcache.cn/@codemirror/lang-php@6.0.2/dist/index.js","@codemirror/lang-python":"https://npm.webcache.cn/@codemirror/lang-python@6.2.1/dist/index.js","@codemirror/lang-rust":"https://npm.webcache.cn/@codemirror/lang-rust@6.0.2/dist/index.js","@codemirror/lang-sass":"https://npm.webcache.cn/@codemirror/lang-sass@6.0.2/dist/index.js","@codemirror/lang-sql":"https://npm.webcache.cn/@codemirror/lang-sql@6.10.0/dist/index.js","@codemirror/lang-wast":"https://npm.webcache.cn/@codemirror/lang-wast@6.0.2/dist/index.js","@codemirror/lang-xml":"https://npm.webcache.cn/@codemirror/lang-xml@6.1.0/dist/index.js","@codemirror/lang-yaml":"https://npm.webcache.cn/@codemirror/lang-yaml@6.1.3/dist/index.js","@codemirror/lang-vue":"https://npm.webcache.cn/@codemirror/lang-vue@0.1.3/dist/index.js","@codemirror/lang-angular":"https://npm.webcache.cn/@codemirror/lang-angular@0.1.4/dist/index.js","@lezer/common":"https://npm.webcache.cn/@lezer/common@1.5.2/dist/index.js","@lezer/highlight":"https://npm.webcache.cn/@lezer/highlight@1.2.3/dist/index.js","@lezer/lr":"https://npm.webcache.cn/@lezer/lr@1.4.10/dist/index.js","@lezer/cpp":"https://npm.webcache.cn/@lezer/cpp@1.1.5/dist/index.js","@lezer/css":"https://npm.webcache.cn/@lezer/css@1.3.3/dist/index.js","@lezer/go":"https://npm.webcache.cn/@lezer/go@1.0.1/dist/index.js","@lezer/html":"https://npm.webcache.cn/@lezer/html@1.3.13/dist/index.js","@lezer/java":"https://npm.webcache.cn/@lezer/java@1.1.3/dist/index.js","@lezer/javascript":"https://npm.webcache.cn/@lezer/javascript@1.5.4/dist/index.js","@lezer/json":"https://npm.webcache.cn/@lezer/json@1.0.3/dist/index.js","@lezer/markdown":"https://npm.webcache.cn/@lezer/markdown@1.6.3/dist/index.js","@lezer/php":"https://npm.webcache.cn/@lezer/php@1.0.5/dist/index.js","@lezer/python":"https://npm.webcache.cn/@lezer/python@1.1.18/dist/index.js","@lezer/rust":"https://npm.webcache.cn/@lezer/rust@1.0.2/dist/index.js","@lezer/sass":"https://npm.webcache.cn/@lezer/sass@1.1.0/dist/index.js","@lezer/xml":"https://npm.webcache.cn/@lezer/xml@1.0.6/dist/index.js","@lezer/yaml":"https://npm.webcache.cn/@lezer/yaml@1.0.4/dist/index.js","@marijn/find-cluster-break":"https://npm.webcache.cn/@marijn/find-cluster-break@1.0.2/src/index.js","crelt":"https://npm.webcache.cn/crelt@1.0.6/index.js","style-mod":"https://npm.webcache.cn/style-mod@4.1.3/src/style-mod.js","w3c-keyname":"https://npm.webcache.cn/w3c-keyname@2.2.8/index.js"}}</script>
+
+    <style>
+        .cf-turnstile { margin-bottom: var(--space-4); }
+        * { box-sizing: border-box; }
+        .icon { display: inline-block; width: 1em; height: 1em; vertical-align: -0.125em; }
+        body { margin: 0; background-color: var(--bg, #ffffff); color: var(--fg, #111827); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+        header { padding: 0 24px; border-bottom: 1px solid var(--border-subtle, rgba(17,24,39,0.12)); background-color: var(--bg, #ffffff); display: flex; justify-content: space-between; align-items: center; height: 64px; }
+        .brand { font-family: 'Geist Mono', monospace; font-size: 14px; letter-spacing: 1.4px; text-transform: uppercase; text-decoration: none; color: var(--fg, #111827); display: flex; align-items: center; gap: 8px; }
+        main { flex: 1; display: flex; flex-direction: column; background-color: var(--bg, #ffffff); }
+        /* View states */
+        #editor-view, #viewer-view, #error-view { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .state-hidden, #editor-view.state-hidden, #viewer-view.state-hidden, #error-view.state-hidden, #loading-indicator.state-hidden { visibility: hidden; opacity: 0; pointer-events: none; }
+        .state-visible, #editor-view.state-visible, #viewer-view.state-visible, #error-view.state-visible, #loading-indicator.state-visible { visibility: visible; opacity: 1; pointer-events: auto; }
+        #loading-indicator.state-visible { display: flex; align-items: center; justify-content: center; position: absolute; inset: 0; color: var(--text-tertiary, rgba(17,24,39,0.5)); }
+        @media (prefers-color-scheme: dark) {
+            body { background-color: var(--bg, #1f2228); color: var(--fg, #ffffff); }
+            header { border-bottom-color: var(--border-subtle, rgba(255,255,255,0.15)); background-color: var(--bg, #1f2228); }
+            .brand { color: var(--fg, #ffffff); }
+            main { background-color: var(--bg, #1f2228); }
+            #loading-indicator.state-visible { color: var(--text-tertiary, rgba(255,255,255,0.5)); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="brand"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> ShareBin</a>
+        <div class="meta" id="header-meta"></div>
+    </header>
+    <main style="background-color: var(--bg, #ffffff);">
+        <div id="loading-indicator" class="state-visible">Loading...</div>
+
+        <!-- Editor view (create mode) -->
+        <div id="editor-view" class="state-hidden">
+            <div class="editor-stage">
+                <div id="editor-wrapper" class="state-visible">
+                    <div id="editor-container"></div>
+                </div>
+                <div id="editor-preview-container" class="paste-surface state-hidden">
+                    <pre class="shiki-static state-hidden" id="editor-preview-code-pre"></pre>
+                    <div id="editor-markdown-preview" class="markdown-body state-hidden"></div>
+                </div>
+            </div>
+            <div class="controls" id="editor-controls">
+                <div id="type-indicator" class="status-indicator">Code Snippet</div>
+                <div class="editor-action-row">
+                    <button id="editor-export-btn" class="btn">Export <svg class="icon" style="margin-left:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button>
+                    <button id="save-btn" class="btn">Share <svg class="icon" style="margin-left:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Captcha Modal -->
+        <div id="captcha-modal" class="modal-overlay">
+            <div class="modal-box">
+                <h3>Verification</h3>
+                <p>Please complete the security check to share.</p>
+                <div id="turnstile-container"></div>
+                <div class="modal-actions">
+                    <button id="cancel-captcha-btn" class="btn-link">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Link Copied!</div>
+    </main>
+
+    <!-- Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    <!-- Editor Entry Point -->
+    <script type="module" src="/src/main-editor.ts"></script>
+</body>
+</html>

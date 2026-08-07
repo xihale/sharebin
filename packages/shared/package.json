@@ -1,0 +1,12 @@
+{
+  "name": "@sharebin/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./routes": "./src/routes.ts",
+    "./languages": "./src/languages.ts",
+    "./utils/id": "./src/utils/id.ts",
+    "./utils/language": "./src/utils/language.ts"
+  }
+}

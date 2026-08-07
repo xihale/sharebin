@@ -1,0 +1,59 @@
+# Run from monorepo root:
+#   docker compose -f apps/selfhost/docker-compose.yml --env-file apps/selfhost/.env up -d --build
+# Or from this directory with COMPOSE_FILE / context overrides.
+
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: apps/selfhost/Dockerfile
+    container_name: sharebin-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://sharebin:${PG_PASSWORD}@postgres:5432/sharebin
+      REDIS_URL: redis://redis:6379/0
+      NODE_ENV: production
+      PORT: "3000"
+    ports:
+      - "127.0.0.1:3000:3000"   # localhost-only; Caddy reverse-proxies
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [sharebin-net]
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sharebin-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sharebin
+      POSTGRES_USER: sharebin
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sharebin -d sharebin"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [sharebin-net]
+
+  redis:
+    image: redis:alpine
+    container_name: sharebin-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [sharebin-net]
+
+volumes:
+  pgdata:
+
+networks:
+  sharebin-net:
+    driver: bridge

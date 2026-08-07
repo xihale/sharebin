@@ -1,0 +1,5 @@
+# Cloudflare Turnstile Secret Key (Use 1x00000000000000000000AA for local testing)
+TURNSTILE_SECRET_KEY=1x00000000000000000000AA
+
+# Secret used for signing verification cookies (Any random long string)
+COOKIE_SECRET=your-random-secret-string-here

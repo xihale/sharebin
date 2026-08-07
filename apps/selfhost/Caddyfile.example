@@ -1,0 +1,10 @@
+# ShareBin — Caddy 纯反代 (app 容器同时服务静态前端 + API)
+# 把这段加进你现有的 /etc/caddy/Caddyfile, 然后 `systemctl reload caddy`
+s.xeed.ink {
+	encode gzip zstd
+
+	reverse_proxy 127.0.0.1:3000 {
+		# 覆盖客户端可能伪造的 XFF, 让 app 只信任真实客户端 IP (限流防绕过)
+		header_up X-Forwarded-For {remote_host}
+	}
+}

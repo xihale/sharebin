@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Debug ShareBin</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #eee; }
+        .section { margin: 20px 0; padding: 10px; border: 1px solid #333; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        pre { background: #000; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>ShareBin Debug Page</h1>
+    
+    <div class="section">
+        <h2>1. API Config Test</h2>
+        <div id="config-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. API Paste Test (XE)</h2>
+        <div id="paste-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. Viewer HTML Load Test</h2>
+        <div id="viewer-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. main-viewer.js Load Test</h2>
+        <div id="js-result"></div>
+    </div>
+    
+    <script>
+        async function test() {
+            // Test 1: Config API
+            const configDiv = document.getElementById('config-result')
+            try {
+                const res = await fetch('/api/config')
+                const data = await res.json()
+                configDiv.innerHTML = `<p class="success">✓ Config API OK</p><pre>${JSON.stringify(data, null, 2)}</pre>`
+            } catch (e) {
+                configDiv.innerHTML = `<p class="error">✗ Config API Failed: ${e.message}</p>`
+            }
+            
+            // Test 2: Paste API
+            const pasteDiv = document.getElementById('paste-result')
+            try {
+                const res = await fetch('/api/paste/XE')
+                const data = await res.json()
+                pasteDiv.innerHTML = `<p class="success">✓ Paste API OK</p><pre>${JSON.stringify(data, null, 2)}</pre>`
+            } catch (e) {
+                pasteDiv.innerHTML = `<p class="error">✗ Paste API Failed: ${e.message}</p>`
+            }
+            
+            // Test 3: Viewer HTML
+            const viewerDiv = document.getElementById('viewer-result')
+            try {
+                const res = await fetch('/viewer.html')
+                const text = await res.text()
+                if (text.includes('viewer-view')) {
+                    viewerDiv.innerHTML = `<p class="success">✓ viewer.html loaded correctly (${text.length} bytes)</p>`
+                } else {
+                    viewerDiv.innerHTML = `<p class="error">✗ viewer.html doesn't contain expected content</p><pre>${text.substring(0, 500)}</pre>`
+                }
+            } catch (e) {
+                viewerDiv.innerHTML = `<p class="error">✗ Failed to load viewer.html: ${e.message}</p>`
+            }
+            
+            // Test 4: main-viewer.js
+            const jsDiv = document.getElementById('js-result')
+            try {
+                const res = await fetch('/src/main-viewer.js')
+                const text = await res.text()
+                if (text.includes('initViewer')) {
+                    jsDiv.innerHTML = `<p class="success">✓ main-viewer.js loaded correctly (${text.length} bytes)</p>`
+                } else {
+                    jsDiv.innerHTML = `<p class="error">✗ main-viewer.js doesn't contain expected content</p>`
+                }
+            } catch (e) {
+                jsDiv.innerHTML = `<p class="error">✗ Failed to load main-viewer.js: ${e.message}</p>`
+            }
+        }
+        
+        test()
+    </script>
+</body>
+</html>

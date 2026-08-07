@@ -1,0 +1,117 @@
+/**
+ * Unified error handling for ShareBin
+ * Provides AppError class and error handling utilities
+ */
+
+import type { Context } from 'hono'
+import type { AppErrorCode } from '../types'
+import { MESSAGES } from '../config'
+import type { Bindings } from '../config'
+
+/**
+ * Application error with code and HTTP status
+ */
+export class AppError extends Error {
+  constructor(
+    public code: AppErrorCode,
+    public statusCode: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'AppError'
+    // Ensure proper prototype chain for instanceof checks
+    Object.setPrototypeOf(this, AppError.prototype)
+  }
+
+  /** Convert to JSON response body */
+  toJSON() {
+    return {
+      error: this.message,
+      code: this.code,
+    }
+  }
+}
+
+/**
+ * Global error handler for Hono
+ * Returns structured error responses with request ID (CF Ray ID)
+ */
+export function globalErrorHandler(err: Error, c: Context<{ Bindings: Bindings }>) {
+  const requestId = c.req.header('cf-ray') || 'unknown'
+
+  // Log error with context
+  console.error(`[Error] RequestID=${requestId}`, {
+    name: err.name,
+    message: err.message,
+    stack: err.stack,
+  })
+
+  // Handle AppError instances
+  if (err instanceof AppError) {
+    return c.json(err.toJSON(), err.statusCode as 400 | 403 | 404 | 429 | 500 | 503)
+  }
+
+  // Handle unexpected errors
+  const isDev = c.env?.TURNSTILE_SECRET_KEY ? false : true // Simple check for production
+  return c.json(
+    {
+      error: isDev ? err.message : MESSAGES.ERRORS.INTERNAL_ERROR,
+      code: 'INTERNAL_ERROR' as const,
+      ...(isDev && { stack: err.stack }),
+    },
+    500
+  )
+}
+
+/**
+ * Create common AppError instances
+ */
+export const Errors = {
+  invalidJson(): AppError {
+    return new AppError('INVALID_JSON' as AppErrorCode, 400, MESSAGES.ERRORS.INVALID_JSON)
+  },
+
+  contentTooLarge(maxSize: number): AppError {
+    return new AppError('CONTENT_TOO_LARGE' as AppErrorCode, 400, MESSAGES.ERRORS.CONTENT_TOO_LARGE(maxSize))
+  },
+
+  rateLimited(): AppError {
+    return new AppError('RATE_LIMITED' as AppErrorCode, 429, MESSAGES.ERRORS.TOO_MANY_REQUESTS)
+  },
+
+  captchaRequired(): AppError {
+    return new AppError('CAPTCHA_REQUIRED' as AppErrorCode, 403, MESSAGES.ERRORS.CAPTCHA_REQUIRED)
+  },
+
+  notFound(): AppError {
+    return new AppError('NOT_FOUND' as AppErrorCode, 404, MESSAGES.ERRORS.NOT_FOUND)
+  },
+
+  linkExpired(): AppError {
+    return new AppError('LINK_EXPIRED' as AppErrorCode, 404, MESSAGES.ERRORS.LINK_EXPIRED)
+  },
+
+  invalidUrl(): AppError {
+    return new AppError('INVALID_URL' as AppErrorCode, 400, MESSAGES.ERRORS.INVALID_URL)
+  },
+
+  allocationFailed(): AppError {
+    return new AppError('ALLOCATION_FAILED' as AppErrorCode, 503, MESSAGES.ERRORS.ALLOCATION_FAILED)
+  },
+
+  internalError(message?: string): AppError {
+    return new AppError(
+      'INTERNAL_ERROR' as AppErrorCode,
+      500,
+      message || MESSAGES.ERRORS.INTERNAL_ERROR
+    )
+  },
+
+  configMissing(configName: string): AppError {
+    return new AppError(
+      'CONFIG_MISSING' as AppErrorCode,
+      500,
+      `Security Error: ${configName} environment variable is missing.`
+    )
+  },
+}

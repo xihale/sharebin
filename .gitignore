@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Runtime / local
+.wrangler/
+.dev.vars
+dev_server.log
+wrangler*.log
+.DS_Store
+.env
+apps/selfhost/.env
+
+# Build output
+dist/
+apps/*/dist
+
+# User Configuration (cloud secrets / local wrangler)
+apps/cloud/wrangler.jsonc
+
+.agent
