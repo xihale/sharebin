@@ -15,7 +15,7 @@ apps/selfhost/.env
 dist/
 apps/*/dist
 
-# User Configuration (cloud secrets / local wrangler)
-apps/cloud/wrangler.jsonc
+# Local wrangler state / secrets only (wrangler.jsonc is committed for CI)
+# Worker secrets (TURNSTILE_SECRET_KEY, COOKIE_SECRET) live in CF via `wrangler secret`
 
 .agent

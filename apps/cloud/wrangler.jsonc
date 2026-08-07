@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sharebin",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-12-24",
+  "routes": [
+    {
+      "pattern": "share.xihale.top",
+      "custom_domain": true
+    },
+    {
+      "pattern": "s.xeed.run",
+      "custom_domain": true
+    }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "SHARE_DB",
+      "database_id": "6e8e3d9d-d9be-4296-882b-0e12d189ef5d"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "LIMITER",
+      "id": "69e1348c0cf947c4ac631baa22785445"
+    }
+  ],
+  "vars": {
+    "TURNSTILE_SITE_KEY": "0x4AAAAAACI6fa1HcBuhPd1S"
+  },
+  "triggers": {
+    "crons": ["0 * * * *"]
+  }
+}
