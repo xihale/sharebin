@@ -109,4 +109,4 @@ jobs:
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
             -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "cd '${DEPLOY_PATH}' && docker compose -f apps/selfhost/docker-compose.yml --env-file apps/selfhost/.env up -d --build"
+            "cd '${DEPLOY_PATH}' && if [ -f .env ] && [ ! -f apps/selfhost/.env ]; then mkdir -p apps/selfhost && cp -a .env apps/selfhost/.env; fi && docker compose -f apps/selfhost/docker-compose.yml --env-file apps/selfhost/.env up -d --build"
